@@ -96,4 +96,26 @@ extension Personality {
                                 distance: 700...2400, restlessness: 2.6,
                                 flourishes: ["walk"],
                                 bits: [moment("walk")])
+
+    /// The Hyperstone Heist four. One rip, one beat-'em-up, four turtles who
+    /// differ by weapon and by temper — which is all they ever differed by.
+    private static func turtle(_ id: String, scale: CGFloat,
+                               beats: ClosedRange<Double>, speed: CGFloat,
+                               restlessness: Double, title: String) -> Personality {
+        hero(id, scale: scale, beats: beats, speed: speed,
+             distance: 500...1900, restlessness: restlessness,
+             flourishes: ["strike", "walk"],
+             bits: [moment("strike")],
+             soundSet: "_sor2", title: title)
+    }
+
+    static let raphael = turtle("raphael", scale: 1.95, beats: 6...14, speed: 200,
+                                restlessness: 2.6, title: "Raphael")
+    static let leonardo = turtle("leonardo", scale: 1.7, beats: 8...18, speed: 175,
+                                 restlessness: 2.0, title: "Leonardo")
+    static let michelangelo = turtle("michelangelo", scale: 1.85, beats: 6...13,
+                                     speed: 195, restlessness: 2.9,
+                                     title: "Michelangelo")
+    static let donatello = turtle("donatello", scale: 1.9, beats: 9...19, speed: 165,
+                                  restlessness: 1.8, title: "Donatello")
 }

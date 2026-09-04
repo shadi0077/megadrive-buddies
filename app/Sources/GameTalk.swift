@@ -72,6 +72,8 @@ enum GameTalk {
         "Street Fighter II was pirated as arcade boards, not discs. Rainbow Edition was a hacked chip, not a patch.",
         "Sonic CD shipped with a different soundtrack in America than in Japan. Both are the real one, depending who you ask.",
         "Nintendo's Game Boy shipped with a link cable, and the killer app for it turned out to be trading.",
+        "The Turtles arcade cabinet in 1989 took four players at once. The home versions could manage two.",
+        "Konami censored Michelangelo's nunchaku in some countries and gave him a grappling hook instead.",
         "Arcades charged by the credit, so difficulty was a business model. Home ports had to learn to be fair.",
     ]
 
@@ -188,6 +190,22 @@ enum GameTalk {
          .init("sonic", "Ninety-nine."),
          .init("robotnik", "I have one in the shed.")],
 
+        [.init("michelangelo", "Pizza."),
+         .init("donatello", "We were mid-conversation."),
+         .init("michelangelo", "And now we're talking about pizza.")],
+
+        [.init("leonardo", "The arcade version let four of us play at once."),
+         .init("raphael", "The home version let two."),
+         .init("leonardo", "That's the console war in one sentence.")],
+
+        [.init("donatello", "Our first arcade cabinet was 1989."),
+         .init("ryu", "Mine was 1991 and it ate the world."),
+         .init("donatello", "Ours came with a pizza. Metaphorically.")],
+
+        [.init("raphael", "Everyone picks me and then complains about the range."),
+         .init("donatello", "I have the range. Nobody picks me."),
+         .init("raphael", "That's the trade, and everyone makes it wrong.")],
+
         [.init("ristar", "I grab things with my arms. They stretch."),
          .init("knuckles", "I punch things. They don't."),
          .init("ristar", "We should team up. You'd hate it.")],
@@ -284,6 +302,14 @@ enum GameTalk {
         "pulseman": ["The studio that made me went on to make something with monsters in it."],
         "gambit": ["The card does the work. I just have to look like I meant it."],
         "sketch": ["I was drawn into my own comic. The artist was not kind."],
+        "raphael": ["Two sai and a temper. That's the build.",
+                    "I'm the one everybody picks, and then complains about the range."],
+        "leonardo": ["Leader. It's not a personality, it's a rota.",
+                     "Four of us on one cabinet. Somebody always took the last continue."],
+        "michelangelo": ["Nunchaku, in the American release. In some countries they gave me a grappling hook.",
+                         "Pizza. That's it, that's the line."],
+        "donatello": ["The bo has the longest reach in the game. Nobody uses it.",
+                      "I did the machines. Somebody had to."],
         "axel": ["Grand Upper. Say it properly."],
         "blaze": ["Everyone remembers the kick. Nobody remembers the projectile."],
         "max": ["I am slow because I only need to arrive once."],

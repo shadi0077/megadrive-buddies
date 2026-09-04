@@ -25,6 +25,7 @@ ICONS = {
     "sonic3d": 9, "jim": 27, "pulseman": 11, "toejam": 22, "earl": 54,
     "robert": 0, "donald": 0, "moonwalker": 22, "gambit": 30, "sketch": 0,
     "ryu": 0, "musashi": 0, "sparkster": 13, "ristar": 0, "terry": 0,
+    "raphael": 7, "leonardo": 7, "michelangelo": 11, "donatello": 7,
 }
 
 
@@ -409,6 +410,48 @@ SPARKSTER = {                              # Rocket Knight Adventures
     "depart":    (rng(28, 39), 12, False),
 }
 
+
+# --------------------------------------------------------------------------
+# The Hyperstone Heist turtles.
+#
+# Their sheets are the ones that needed `sheet.py --blobs`: the sprites sit at
+# whatever height suits them, so bands and columns weld neighbours together.
+# Frames here are numbered by the blob cut, and the idle, walk and attack rows
+# were found by matching frames back to their position on the sheet.
+# --------------------------------------------------------------------------
+
+RAPHAEL = {
+    "rest":      (rng(7, 10), 4, True),
+    "walk":      (rng(22, 25), 10, True),
+    "strike":    (rng(43, 46), 13, False),
+    "arrive":    (rng(22, 25), 10, False),
+    "depart":    (rng(22, 25), 10, False),
+}
+
+LEONARDO = {
+    "rest":      (rng(7, 10), 4, True),
+    "walk":      (rng(21, 24), 10, True),
+    "strike":    (rng(39, 42), 13, False),
+    "arrive":    (rng(21, 24), 10, False),
+    "depart":    (rng(21, 24), 10, False),
+}
+
+MICHELANGELO = {
+    "rest":      ([11, 12, 7, 15], 4, True),
+    "walk":      (rng(20, 23), 10, True),
+    "strike":    (rng(41, 44), 13, False),
+    "arrive":    (rng(20, 23), 10, False),
+    "depart":    (rng(20, 23), 10, False),
+}
+
+DONATELLO = {
+    "rest":      (rng(7, 10), 4, True),
+    "walk":      (rng(18, 21), 10, True),
+    "strike":    (rng(42, 45), 13, False),
+    "arrive":    (rng(18, 21), 10, False),
+    "depart":    (rng(18, 21), 10, False),
+}
+
 for name, clips in [("axel", AXEL), ("blaze", BLAZE), ("max", MAX), ("skate", SKATE),
                     ("adam", ADAM), ("axel1", AXEL1), ("blaze1", BLAZE1),
                     ("galsia", GALSIA), ("donovan", DONOVAN), ("eagle", EAGLE),
@@ -420,7 +463,9 @@ for name, clips in [("axel", AXEL), ("blaze", BLAZE), ("max", MAX), ("skate", SK
                     ("earl", EARL), ("robert", ROBERT), ("donald", DONALD),
                     ("moonwalker", MOONWALKER), ("gambit", GAMBIT),
                     ("sketch", SKETCH), ("ryu", RYU), ("musashi", MUSASHI),
-                    ("sparkster", SPARKSTER)]:
+                    ("sparkster", SPARKSTER), ("raphael", RAPHAEL),
+                    ("leonardo", LEONARDO), ("michelangelo", MICHELANGELO),
+                    ("donatello", DONATELLO)]:
     if not os.path.isdir(f"app/Resources/characters/{name}/frames"):
         print(f"{name}: no sprites imported, skipping")
         continue

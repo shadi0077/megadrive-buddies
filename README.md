@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
 ![Platform](https://img.shields.io/badge/macOS-11%2B%20(Apple%20Silicon)-lightgrey)
 
-Thirty-one Mega Drive characters who live on your macOS desktop. They pace the
+Thirty-five Mega Drive characters who live on your macOS desktop. They pace the
 length of the screen at their own speeds, do the things their games had them
 do, and when two of them end up near each other they square up and have a go.
 
@@ -59,12 +59,13 @@ seconds and seven megabytes.
 | **Platformers** | Earthworm Jim, Pulseman, Sparkster, Donald Duck |
 | **ToeJam & Earl** | ToeJam, Earl |
 | **Fighters** | Terry Bogard, Ryu, Robert Garcia, Joe Musashi, Gambit, Sketch Turner |
+| **Hyperstone Heist** | Raphael, Leonardo, Michelangelo, Donatello |
 | **Moonwalker** | Michael Jackson |
 
 Both Streets of Rage games have an Axel and a Blaze, seven years apart, so the
 older pair carry the year in the menu; the 3D Blast Sonic is pre-rendered
 rather than drawn and looks it, which is why he ships alongside the Sonic 2
-one rather than instead of him. Have one of them out, or all thirty-one.
+one rather than instead of him. Have one of them out, or all thirty-five.
 
 They're told apart by how they move rather than by what they say, because there
 is nothing to say:
@@ -345,6 +346,21 @@ exactly one sprite, so this particular embarrassment can't come back.
 walk from separate torso and leg sprites, so frames 3–10 of each character are
 disembodied legs. The trio glide on their idle and roam much less, which is
 better than animating a pair of trousers across the desktop.
+
+**Not every sheet has rows.** The Hyperstone Heist turtles sit at whatever
+height suits them, so a band of the sheet spans several sprites at different
+offsets, the gap between two of them is covered by a third sitting higher, and
+column projection welds the lot into one frame. `sheet.py --blobs` segments by
+connected pixels instead, which doesn't care about rows.
+
+Blobs bring their own trap. A sprite is one blob *except* where the art has
+detached parts — a raised sword, the shadow under the feet — so those have to
+be joined back on, and joining by proximity chains: on a busy sheet every blob
+is within a few pixels of the next, and Leonardo's entire title area came out
+as one 636×406 frame. Joining only lopsided pairs fixes that and breaks
+differently, because beside a 649×335 piece of title art a 40×55 turtle is
+lopsided too. What works is an absolute rule: a blade, a shadow or a spark is
+small or thin in its own right, and anything bigger is a sprite.
 
 **Sheets annotate themselves, and the annotations are hazards.** The Sonic
 sheets mark "place between other frames" with a green bar, the Knuckles sheet

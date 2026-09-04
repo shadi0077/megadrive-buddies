@@ -98,9 +98,8 @@ for p in Personality.all {
     // else — but every kind must still produce a noise, or a character goes
     // quiet at exactly the moment one is called for.
     for kind in SoundBank.Kind.allCases {
-        check("\(p.name): \(kind.rawValue) finds a sound", bank.play(kind))
+        check("\(p.name): \(kind.rawValue) finds a sound", bank.source(for: kind) != nil)
     }
-    bank.stop()
 }
 
 print("\nsquaring up:")

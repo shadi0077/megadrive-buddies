@@ -80,11 +80,9 @@ ready-made starting point:
   Sonic 2 one at desktop size, which is why he isn't in the cast.
 - `headdy` — Dynamite Headdy, whose sheet is split into separate head and body
   pieces meant to be composited. He needs more than a range in `catalog.py`.
-- The four Hyperstone Heist turtles are **not** cut, and are the interesting
-  problem: their sprites carry drop shadows that touch, so the cutter welds
-  neighbouring frames together and only ~85% of frames come out as single
-  sprites. Fixing that in `tools/sheet.py` would earn four characters at
-  once.
+The Hyperstone Heist turtles used to be on this list. They needed
+`sheet.py --blobs`, which segments by connected pixels rather than by bands and
+columns — see the README for what that fixes and what it breaks.
 
 ## Adding an app
 

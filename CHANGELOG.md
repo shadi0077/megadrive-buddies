@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.5
+
+- **The Hyperstone Heist turtles.** Raphael, Leonardo, Michelangelo and
+  Donatello — thirty-five characters now. They keep the Streets of Rage sound
+  set and have their own lines about four-player cabinets and pizza.
+- `sheet.py --blobs` segments a sheet by connected pixels instead of bands and
+  columns, for sheets whose rows aren't rows. That's what the turtles needed.
+- **Sound no longer runs on the main thread.** `AVAudioPlayer.play()` makes a
+  blocking XPC call to the audio server, and when that server is unhappy it
+  never returns — which froze every character mid-step, with no menu and no
+  trace. Found by sampling a silent, motionless app. A hung audio server is now
+  somebody else's problem; the characters keep walking, in silence.
+- The cast test no longer plays a hundred sounds to prove they exist. It asks
+  which clip a kind resolves to, which is the actual logic, and doesn't wedge
+  the machine's audio service on the way past.
+
 ## 1.4
 
 - **They talk.** Speech bubbles — no voices — with forty-five facts, twenty-six
