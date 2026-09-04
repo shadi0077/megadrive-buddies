@@ -14,16 +14,8 @@ final class Animator {
     private var lastTick: TimeInterval = 0
     private var onFinish: (() -> Void)?
 
-    /// Lip-sync overrides the mouth patch while a line is being "spoken".
-    private var talking: TalkPose?
-    private var mouthClock: TimeInterval = 0
-
     /// Called every tick with the delta, for movement.
     var onTick: ((TimeInterval) -> Void)?
-
-    /// Live mouth openness (0...1) while a voice is speaking. When this is
-    /// nil the mouth falls back to cycling visemes on a timer.
-    var mouthLevel: (() -> Float?)?
 
     init(store: SpriteStore, view: BuddyView) {
         self.store = store
@@ -36,7 +28,7 @@ final class Animator {
         guard timer == nil else { return }
         lastTick = CACurrentMediaTime()
         let t = Timer(timeInterval: 1.0 / 60.0, repeats: true) { [weak self] _ in self?.tick() }
-        // .common keeps the bird alive while menus are tracking or a drag is live.
+        // .common keeps them alive while menus are tracking or a drag is live.
         RunLoop.main.add(t, forMode: .common)
         timer = t
     }
@@ -58,35 +50,18 @@ final class Animator {
         render()
     }
 
-    /// Hold a single pose (used while dragging, or as a talk base).
+    /// Hold a single frame (used while dragging).
     func hold(_ frame: Int) {
-        current = AnimationDef(name: "hold", steps: [Step(frame: frame, overlay: nil)],
+        current = AnimationDef(name: "hold", steps: [Step(frame: frame)],
                                fps: 1, loop: true)
         elapsed = 0
         onFinish = nil
         render()
     }
 
-    /// Start lip-syncing in `pose`, holding the body frame its mouth patches
-    /// were drawn for. Pass nil (or a pose with no mouth set in the sprite
-    /// data) to speak without lip-sync and leave the animation alone.
-    func beginTalking(pose: String?) {
-        guard let pose, let talk = store.talkPoses[pose] else {
-            talking = nil
-            return
-        }
-        talking = talk
-        mouthClock = 0
-        hold(talk.body)
-    }
-
-    func endTalking() {
-        talking = nil
-    }
-
-    /// Mirrors the sprite horizontally. What that *means* depends on the clip —
-    /// the flight frames fly left unmirrored, the point aims right unmirrored —
-    /// so callers set it explicitly rather than going through a "facing" idea
+    /// Mirrors the sprite horizontally. Every rip faces the viewer's left
+    /// unmirrored, but what mirroring *means* still depends on the clip, so
+    /// callers set it explicitly rather than going through a "facing" idea
     /// that would be wrong for half the animations.
     var mirrored: Bool {
         get { view.mirrored }
@@ -99,7 +74,6 @@ final class Animator {
         lastTick = now
 
         elapsed += dt
-        mouthClock += dt
         onTick?(dt)
 
         guard let def = current else { return }
@@ -126,20 +100,6 @@ final class Animator {
         } else {
             index = min(index, def.steps.count - 1)
         }
-        var step = def.steps[index]
-
-        // Mouth patches are drawn to register with one specific body frame, so
-        // they may only ever be composited onto that frame. Anything else puts
-        // a rectangle of beak in the middle of the wrong pose.
-        if let talk = talking, step.frame == talk.body {
-            if let level = mouthLevel?() {
-                step = Step(frame: step.frame, overlay: talk.mouth(forLevel: level))
-            } else {
-                // No audio to follow: cycle visemes at a chatter-like rate.
-                let m = Int(mouthClock * 9) % talk.mouths.count
-                step = Step(frame: step.frame, overlay: talk.mouths[m])
-            }
-        }
-        view.step = step
+        view.step = def.steps[index]
     }
 }

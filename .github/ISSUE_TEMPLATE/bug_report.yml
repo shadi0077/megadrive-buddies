@@ -15,7 +15,7 @@ body:
       description: |
         Run them with tracing on and paste the relevant lines. This shows what
         they decided to do and when, which is usually the whole answer.
-      placeholder: PEEDY_DEBUG=1 ./build/Peedy.app/Contents/MacOS/Peedy
+      placeholder: BUDDY_DEBUG=1 "./build/MegaDrive Buddies.app/Contents/MacOS/MegaDrive Buddies"
       render: shell
   - type: input
     id: version

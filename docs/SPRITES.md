@@ -1,19 +1,15 @@
 # About the sprites
 
-The character artwork under `app/Resources/characters/` is **not covered by this
-project's MIT licence**.
-
-Peedy (the parrot) and Bonzi (the gorilla) are Microsoft Agent characters. The
-artwork belongs to its respective owners — Microsoft for the Agent character
-set, and Bonzi Software for Bonzi.
+The character artwork and sound under `app/Resources/characters/` is **not
+covered by this project's MIT licence**.
 
 Axel, Blaze, Max, Skate, Adam, Galsia, Donovan, Eagle and Slum, and the sound
-effects that go with them, are from **Streets of Rage** and belong to Sega. The
+effects that go with them, are from **Streets of Rage** (*Bare Knuckle* in
+Japan) and belong to Sega, with music and sound by Yuzo Koshiro and Ancient. The
 sheets are community rips, of the kind archived on The Spriters Resource.
 
-All of it is included here so the apps run straight from a clone, but no rights
-to any of these characters are granted with it, and none of it is mine to
-license.
+They are included here so the app runs straight from a clone, but no rights to
+any of it are granted with it, and none of it is mine to license.
 
 The MIT licence in `LICENSE` covers the Swift source, the Python tooling, and
 the documentation.
@@ -21,56 +17,55 @@ the documentation.
 **If you are a rights holder** and would like this removed, open an issue or
 contact the maintainer and it will be taken down promptly.
 
-## What's committed, and what isn't
+## What's committed
 
 | | |
 |---|---|
-| `app/Resources/characters/<name>/frames/` | The packed sprites the app loads — trimmed, alpha-keyed PNGs. Committed. |
-| `app/Resources/characters/<name>/frames.json` | Frame offsets, so trimmed frames stay registered with each other. Committed. |
-| `app/Resources/characters/<name>/animations.json` | Clip ranges, frame rates, talk poses, viseme ramps. Committed. |
-| `app/Resources/characters/_sor2/` | The Streets of Rage sound effects, shared by that whole cast. Committed. |
-| `assets/` | The raw sprite dumps, the game sheets, and the keyed intermediates. **Not committed** — 35 MB, and regenerable. |
+| `app/Resources/characters/<name>/frames/` | The cut sprites the app loads — trimmed, alpha PNGs |
+| `app/Resources/characters/<name>/frames.json` | Frame offsets on a shared canvas, so their feet stay planted |
+| `app/Resources/characters/<name>/animations.json` | Clip ranges, frame rates, loop flags |
+| `app/Resources/characters/_sor2/` | The sound effects, shared by the whole cast |
+| `assets/`, `sheets/` | The source sheets and working images. **Not committed** — regenerable |
 
-## Rebuilding the asset pack
+Everything the app needs is committed, so a clone builds and runs. You only need
+the source sheets to add a character or redo one from a different rip.
 
-You only need this if you're changing the pipeline or adding a character. The
-source dumps are widely archived as "BonziBUDDY - Characters - Peedy" and
-"- Bonzi", each a zip of numbered PNG frames on a cyan (`#00FFFF`) background.
-
-```bash
-./setup.sh ~/Downloads/peedy.zip ~/Downloads/bonzi.zip
-```
-
-That unpacks them, keys out the cyan, trims every frame, measures the visemes,
-writes the asset pack, and builds the app.
-
-### From a single game sheet
-
-Sprite rips usually come as one sheet rather than numbered frames, so they start
-at a different place:
+## Cutting a sheet
 
 ```bash
-python3 tools/sheet.py <name> <sheet.png>
+./setup.sh <name> <sheet.png> [key_r,key_g,key_b | alpha] [y0:y1]
 ```
 
-It finds horizontal bands of content, then columns within each band, then trims
-each to its bounding box — and auto-detects whether the background is real alpha
-or a colour key. Bands map almost one-to-one onto animations. A caption printed
-directly above a sprite ends up *inside* that frame, and nothing catches that
-automatically; see [MEGADRIVE.md](MEGADRIVE.md).
+`tools/sheet.py` finds horizontal bands of content, then columns within each
+band, then splits each column at its own vertical gaps, and trims every frame to
+its bounding box. Some rips key the background by colour (`204,255,204` is
+common) and others leave it genuinely transparent; it detects which from the
+file rather than trusting the argument. The optional `y0:y1` takes a horizontal
+slice, for sheets carrying more than one character.
+
+Then render the numbered index and *look at it* before authoring anything:
+
+```bash
+python3 tools/index.py <name>
+```
+
+This is not optional diligence. Captions printed beside a sprite end up inside
+its frame at a perfectly normal size, colour swatches sit in the middle of the
+sheet, and the Streets of Rage 1 rips have no whole-body walk at all — their
+walk frames are disembodied legs, because the game composited a walk from
+separate torso and leg sprites. None of that is detectable automatically. The
+README's "Cutting the sheets" section lists the traps found so far.
 
 ## Adding your own character
 
-1. Get a sprite dump on a flat colour-key background.
-2. `python3 tools/extract.py <name>` — keys it out, measures every frame.
-3. `python3 tools/strips.py <name>` — renders labelled contact strips into
-   `sheets/`. Runs of full-body frames are almost always one animation each;
-   the small patches between them are mouth visemes and eye blinks.
-4. Declare the clip ranges and talk poses in `tools/catalog.py`.
-5. `python3 tools/pack.py <name>` — writes the asset pack.
-6. Add a `Personality` in `app/Sources/` — voice, pacing, clips, and what they say.
-7. Add exchanges to `Banter.swift` if they should talk to the others.
-8. Add the id to the `cast` of a manifest in `products/`, or they won't ship
-   with either app.
+1. `./setup.sh <name> <sheet.png>` — cuts the sheet and renders the index.
+2. Open `tools/out/<name>-index.png` and note which frames belong to which
+   animation.
+3. Declare the clip ranges in `tools/catalog.py`, then run it.
+4. Add a `Personality` to `app/Sources/SoRPersonalities.swift` — scale, pace,
+   reach, and which moves they reach for.
+5. Add the id to the `cast` in `products/megadrive-buddies.json`, or they won't
+   ship.
 
-`tools/casttest` will tell you if you've named a clip that doesn't exist.
+`./test.sh` will tell you if you've named a clip that doesn't exist, or if any
+frame ended up holding two sprites.

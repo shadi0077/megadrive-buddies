@@ -1,16 +1,22 @@
 import AppKit
 
-// The two of them: distinct personalities, complete animation sets, and
-// dialogue that only references characters who exist.
+// The roster: everybody loads, every clip a personality names exists, and
+// everybody has a noise to make. Runs against the built app bundle, so it
+// checks what actually ships rather than what is in the source tree.
 _ = NSApplication.shared
 var failures = 0
 func check(_ label: String, _ ok: Bool, _ detail: String = "") {
     if ok { print("  ok   \(label)") } else { print("  FAIL \(label) \(detail)"); failures += 1 }
 }
 
-let bundle = Bundle(path: ProcessInfo.processInfo.environment["BUDDY_APP"] ?? "build/Desktop Buddies.app")!
+let bundle = Bundle(path: ProcessInfo.processInfo.environment["BUDDY_APP"]
+                    ?? "build/MegaDrive Buddies.app")!
 print("\(Product.current.name): \(Personality.all.count) characters\n")
-print("all of them load:")
+
+print("everyone in the manifest loads:")
+check("the manifest and the roster agree",
+      Personality.all.map(\.id) == Product.current.cast,
+      "\(Personality.all.map(\.id)) vs \(Product.current.cast)")
 var stores: [String: SpriteStore] = [:]
 for p in Personality.all {
     guard let store = SpriteStore(character: p.id, bundle: bundle) else {
@@ -30,204 +36,60 @@ for p in Personality.all {
         for name in [bit.intro, bit.loop, bit.outro].compactMap({ $0 })
         where store.animation(name) == nil { missing.append(name) }
     }
-    // Everyone needs these. Blinking, greeting and cheering are particular to
-    // the Agent characters, which have eye patches and a wave; a Genesis sprite
-    // rip has neither.
-    var required = ["rest", "arrive", "depart", p.travel.cruise]
-    if p.speaks { required += ["blink", "greet", "cheer"] }
-    for name in required where store.animation(name) == nil { missing.append(name) }
-    if case .flies(let takeoff, _, let land) = p.travel {
-        for name in [takeoff, land] where store.animation(name) == nil { missing.append(name) }
-    }
+    // Whatever else they lack, they must be able to stand, arrive, leave and
+    // move: those four are named directly rather than through move().
+    for name in ["rest", "arrive", "depart", p.walk]
+    where store.animation(name) == nil { missing.append(name) }
     check("\(p.name): no dangling clip names", missing.isEmpty, missing.joined(separator: ", "))
-
-    // Bits that name a talk pose must have one, or the mouth patches would be
-    // dropped silently and he'd talk with a still face.
-    let badPose = p.bits.compactMap(\.pose).filter { store.talkPoses[$0] == nil }
-    check("\(p.name): every named talk pose exists", badPose.isEmpty,
-          badPose.joined(separator: ", "))
-    if p.speaks {
-        check("\(p.name): has a neutral talk pose", store.talkPoses["neutral"] != nil)
-    }
+    check("\(p.name): has something to throw",
+          p.flourishes.contains { store.animation($0) != nil })
 }
 
-if Personality.all.contains(where: { $0.id == "peedy" }) {
-print("\nthey are actually different:")
-let peedy = Personality.peedy, bonzi = Personality.bonzi
-let pEn = peedy.pack(.english)!, bEn = bonzi.pack(.english)!
-check("different voices in English", pEn.preferredVoice != bEn.preferredVoice,
-      "\(pEn.preferredVoice ?? "-") vs \(bEn.preferredVoice ?? "-")")
-check("different pitch", pEn.pitch != bEn.pitch)
-check("Bonzi speaks more slowly", bEn.rate < pEn.rate, "\(bEn.rate) vs \(pEn.rate)")
-// Only one Arabic voice ships with macOS, so in Arabic they have to be told
-// apart by pitch and pace instead.
-let pAr = peedy.pack(.arabic)!, bAr = bonzi.pack(.arabic)!
-check("Arabic: told apart by pitch",
-      pAr.pitch.rawValue > bAr.pitch.rawValue + 0.4,
-      "\(pAr.pitch.rawValue) vs \(bAr.pitch.rawValue)")
-check("Arabic: told apart by pace", bAr.rate < pAr.rate, "\(bAr.rate) vs \(pAr.rate)")
-check("Arabic: they sing in different registers",
-      abs(pAr.singingRoot - bAr.singingRoot) > 40,
-      "\(pAr.singingRoot) vs \(bAr.singingRoot)")
-check("Bonzi does less, less often",
-      bonzi.beatRange.lowerBound > peedy.beatRange.lowerBound)
-check("no shared small talk", Set(pEn.idle).isDisjoint(with: Set(bEn.idle)))
-check("no shared jokes",
-      Set(pEn.jokes.map(\.setup)).isDisjoint(with: Set(bEn.jokes.map(\.setup))))
-check("no shared songs",
-      Set(pEn.songs.map(\.title)).isDisjoint(with: Set(bEn.songs.map(\.title)))
-      && Set(pAr.songs.map(\.title)).isDisjoint(with: Set(bAr.songs.map(\.title))))
-check("they do share general knowledge",
-      !Set(pEn.facts).isDisjoint(with: Set(bEn.facts)))
-check("each has themed facts of its own",
-      !Set(pEn.facts).subtracting(bEn.facts).isEmpty
-          && !Set(bEn.facts).subtracting(pEn.facts).isEmpty
-          && !Set(pAr.facts).subtracting(bAr.facts).isEmpty)
-check("Peedy flies, Bonzi doesn't", {
-    if case .flies = peedy.travel, case .hops = bonzi.travel { return true }
-    return false
-}())
-
-print("\nboth languages:")
-for p in Personality.all where p.speaks {
-    for lang in Language.allCases {
-        guard let pack = p.packs[lang] else {
-            check("\(p.id) has a \(lang.rawValue) pack", false); continue
-        }
-        check("\(p.id)/\(lang.rawValue): named in its own language", !pack.name.isEmpty)
-        let pools = [pack.greetings, pack.idle, pack.poked, pack.pokedAgain,
-                     pack.dropped, pack.leaving, pack.welcomeBack, pack.noticed]
-        check("\(p.id)/\(lang.rawValue): every pool has lines",
-              pools.allSatisfy { !$0.isEmpty })
-        check("\(p.id)/\(lang.rawValue): four times of day",
-              pack.timeOfDay.count == 4, "\(pack.timeOfDay.count)")
-        check("\(p.id)/\(lang.rawValue): jokes, facts, riddles, songs",
-              !pack.jokes.isEmpty && !pack.facts.isEmpty
-                  && !pack.riddles.isEmpty && !pack.songs.isEmpty)
-        // Every bit names a line pool, or it performs in silence.
-        let missing = p.bits.map(\.talk).filter { pack.byBit[$0] == nil }
-        check("\(p.id)/\(lang.rawValue): every bit has something to say",
-              missing.isEmpty, missing.joined(separator: ", "))
-        // A pack whose voice isn't installed must not be offered.
-        check("\(p.id)/\(lang.rawValue): resolves a voice or declares none",
-              pack.preferredVoice == nil || Voice.installed(pack.preferredVoice!))
-    }
+print("\nthey are told apart by how they move:")
+let ids = Personality.all.map(\.id)
+check("ids are unique", Set(ids).count == ids.count)
+check("names are unique", Set(Personality.all.map(\.name)).count == ids.count)
+check("both Axels are distinguishable",
+      Personality.axel.name != Personality.axel1.name,
+      "\(Personality.axel.name) / \(Personality.axel1.name)")
+check("Max is the slow one",
+      Personality.all.allSatisfy { $0.id == "max" || $0.roaming.speed >= Personality.max.roaming.speed },
+      "\(Personality.max.roaming.speed)")
+check("Skate is the quick one",
+      Personality.all.allSatisfy { $0.id == "skate" || $0.roaming.speed <= Personality.skate.roaming.speed })
+for p in Personality.all {
+    check("\(p.name): walks a sane distance at a sane pace",
+          p.roaming.distance.lowerBound > 0
+              && p.roaming.distance.upperBound <= 4000
+              && (60...400).contains(p.roaming.speed)
+              && p.beatRange.lowerBound > 0,
+          "\(p.roaming.speed) pt/s, \(p.roaming.distance)")
 }
 
-// Arabic really is Arabic, not English sitting in the wrong slot.
-func isArabic(_ s: String) -> Bool {
-    s.unicodeScalars.contains { (0x0600...0x06FF).contains(Int($0.value)) }
-}
-for p in Personality.all where p.speaks {
-    guard let ar = p.packs[.arabic] else { continue }
-    let all = ar.greetings + ar.idle + ar.poked + ar.dropped + ar.leaving
-        + ar.jokes.map(\.setup) + ar.jokes.map(\.punchline) + ar.facts
-        + ar.riddles.map(\.question) + ar.twisters
-    check("\(p.id): the Arabic pack is written in Arabic",
-          all.allSatisfy(isArabic), all.first { !isArabic($0) } ?? "")
-    let en = p.packs[.english]!
-    check("\(p.id): the two languages share no lines",
-          Set(ar.idle).isDisjoint(with: Set(en.idle)))
-}
-
-print("\nvoices match the language they're speaking:")
-// The bug this guards: a voice chosen in one language being reapplied in
-// another. An English synthesiser handed Arabic doesn't fail — it spells it
-// out, at roughly ten times the length and completely unintelligible.
-for p in Personality.all where p.speaks {
-    for lang in Language.allCases {
-        guard let id = p.pack(lang)?.preferredVoice else { continue }
-        check("\(p.id)/\(lang.rawValue): picks a \(lang.rawValue) voice",
-              Voice.canSpeak(id, lang),
-              "\(Voice.languageCode(of: id) ?? "?") voice for \(lang.rawValue)")
-    }
-}
-check("an English voice is rejected for Arabic",
-      !Voice.canSpeak("com.apple.speech.synthesis.voice.Fred", .arabic))
-check("an Arabic voice is rejected for English",
-      !Voice.canSpeak("com.apple.voice.super-compact.ar-001.Maged", .english))
-check("a voice that isn't installed is rejected",
-      !Voice.canSpeak("com.example.nope", .english))
-// The menu must only ever offer voices that can speak the current language.
-for lang in Language.allCases {
-    let offered = Voice.options(for: lang)
-    check("the \(lang.rawValue) voice menu only offers \(lang.rawValue) voices",
-          offered.allSatisfy { Voice.canSpeak($0.identifier, lang) },
-          offered.first { !Voice.canSpeak($0.identifier, lang) }?.title ?? "")
-    check("the \(lang.rawValue) voice menu isn't empty", !offered.isEmpty)
-}
-
-}
-
-print("\nsparring needs somebody to spar with:")
-// Every clip named in an exchange must exist for somebody, or the move()
-// fallback quietly turns a punch into whatever else they had.
-let brawlerIDs = Personality.all.filter { !$0.speaks }.map(\.id)
-if brawlerIDs.count > 1 {
-    check("there is more than one brawler", true)
-}
-for p in Personality.all where !p.speaks {
+print("\nnobody talks; everybody makes a noise:")
+for p in Personality.all {
     guard let store = stores[p.id] else { continue }
-    // Whatever else they lack, they must be able to stand, move and react.
-    for name in ["rest", "walk", "arrive", "depart"] {
-        check("\(p.id): has \(name)", store.animation(name) != nil)
+    check("\(p.name): the sprite set has no mouth frames to sync",
+          store.animations["talk"] == nil)
+    guard let bank = SoundBank(set: p.soundSet, bundle: bundle) else {
+        check("\(p.name): has a sound bank", false); continue
     }
-    check("\(p.id): has something to throw",
-          !p.flourishes.filter { store.animation($0) != nil }.isEmpty)
-}
-
-print("\ncharacters who make noise instead of talking:")
-for p in Personality.all where !p.speaks {
-    guard let store = stores[p.id] else { check("\(p.id) loads", false); continue }
-    check("\(p.id): has no speech packs", p.packs.isEmpty)
-    check("\(p.id): has no talk poses", store.talkPoses.isEmpty)
-    check("\(p.id): every language is open to it", p.languages().count == Language.allCases.count)
-    guard let set = p.soundSet,
-          let bank = SoundBank(set: set, bundle: bundle) else {
-        check("\(p.id): has a sound bank", false); continue
-    }
-    check("\(p.id): has a sound bank", true)
+    check("\(p.name): has a sound bank", true)
     for kind in SoundBank.Kind.allCases {
-        check("\(p.id): has \(kind.rawValue) sounds", bank.has(kind))
+        check("\(p.name): has \(kind.rawValue) sounds", bank.has(kind))
     }
-    // Pixel art must not be smoothed on the way up.
-    check("\(p.id): declared as pixel art", p.pixelArt)
 }
 
-if Personality.all.contains(where: { $0.speaks }) {
-print("\nbanter:")
-let cast: Set<String> = ["peedy", "bonzi"]
-let usable = Banter.available(for: cast, in: .english)
-check("there are exchanges for a full cast", usable.count > 10, "\(usable.count)")
-check("every exchange has at least two speakers",
-      usable.allSatisfy { Set($0.map(\.who)).count > 1 })
-check("no exchange names an unknown character",
-      Language.allCases.allSatisfy { l in
-          Banter.all(in: l).allSatisfy { Set($0.map(\.who)).isSubset(of: cast) }
-      })
-check("there are Arabic exchanges too",
-      Banter.available(for: cast, in: .arabic).count > 10,
-      "\(Banter.available(for: cast, in: .arabic).count)")
-check("solo casts get no exchanges",
-      Banter.available(for: ["peedy"], in: .english).isEmpty
-          && Banter.available(for: [], in: .arabic).isEmpty)
-// A move in dialogue must exist for whoever performs it, or the line loses its
-// gesture with no warning.
-var badMoves: [String] = []
-for exchange in Language.allCases.flatMap({ Banter.all(in: $0) }) {
-    for line in exchange {
-        guard let move = line.move, let store = stores[line.who] else { continue }
-        if store.animation(move) == nil { badMoves.append("\(line.who):\(move)") }
-    }
+print("\nsparring:")
+// Two of them is the whole premise; one character can't square up with anyone.
+check("more than one of them ships", Personality.all.count > 1)
+let canFight = Personality.all.filter { p in
+    guard let store = stores[p.id] else { return false }
+    return ["punch", "kick", "jab", "attack", "highKick", "slam", "flip"]
+        .contains { store.animation($0) != nil }
 }
-check("every gesture in dialogue exists for its speaker", badMoves.isEmpty,
-      badMoves.joined(separator: ", "))
-check("lines alternate rather than one of them monologuing",
-      Language.allCases.flatMap({ Banter.all(in: $0) }).allSatisfy { exchange in
-          !zip(exchange, exchange.dropFirst()).contains { $0.who == $1.who }
-      })
+check("everybody can throw or take a swing", canFight.count == Personality.all.count,
+      Set(ids).subtracting(canFight.map(\.id)).joined(separator: ", "))
 
 print(failures == 0 ? "\nall checks passed" : "\n\(failures) FAILED")
 exit(failures == 0 ? 0 : 1)
-
-}

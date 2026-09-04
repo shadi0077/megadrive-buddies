@@ -3,7 +3,7 @@ import Foundation
 
 // Reports on-screen window geometry for a named app. Window *metadata* needs
 // no screen-recording permission, only window images do.
-let target = CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : "Peedy"
+let target = CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : "MegaDrive Buddies"
 let samples = CommandLine.arguments.count > 2 ? Int(CommandLine.arguments[2])! : 10
 for i in 0..<samples {
     let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements],

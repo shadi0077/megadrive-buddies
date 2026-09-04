@@ -3,20 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Desktop Buddies — animated characters for your Mac</title>
-<meta name="description" content="Animated characters who live on your macOS desktop. A parrot and a gorilla who sing and argue, or eleven Streets of Rage sprites who walk about and fight. No network, no analytics, no upsell.">
-<meta property="og:title" content="Desktop Buddies">
-<meta property="og:description" content="A parrot and a gorilla for your Mac — plus a second app full of Streets of Rage sprites. They walk around, tell jokes, sing in tune, and go for each other.">
+<title>MegaDrive Buddies — Streets of Rage sprites for your Mac</title>
+<meta name="description" content="Eleven Streets of Rage characters who live on your macOS desktop. They walk the length of the screen and square up when two of them get close. No network, no analytics, no upsell.">
+<meta property="og:title" content="MegaDrive Buddies">
+<meta property="og:description" content="Eleven Streets of Rage sprites for your Mac. They pace the screen, throw punches, and square up when they meet.">
 <meta property="og:type" content="website">
 <style>
 :root {
   --bg: #fbfaf7; --panel: #ffffff; --ink: #1b1b1f; --muted: #5c5c68;
-  --line: #e4e2dc; --accent: #2f7d43; --accent2: #6b4b9a; --code: #f4f2ee;
+  --line: #e4e2dc; --accent: #2f5f9e; --accent2: #b4442f; --code: #f4f2ee;
 }
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #16161a; --panel: #1e1e24; --ink: #eceaf0; --muted: #a2a0ad;
-    --line: #2e2e38; --accent: #5fbd77; --accent2: #a98bdc; --code: #24242c;
+    --line: #2e2e38; --accent: #74a6e8; --accent2: #e8836b; --code: #24242c;
   }
 }
 * { box-sizing: border-box; }
@@ -72,145 +72,115 @@ a { color: var(--accent); }
 <div class="wrap">
 
 <header>
-  <h1><span class="p">Peedy</span> &amp; <span class="b">Bonzi</span></h1>
-  <p class="tag">A parrot and a gorilla who live on your Mac's desktop. They walk
-  around, do bits, sing in tune, and argue with each other. There's a second app
-  in the same repository, <a href="#megadrive">MegaDrive Buddies</a>, with eleven
-  Streets of Rage sprites in it.</p>
+  <h1><span class="p">MegaDrive</span> <span class="b">Buddies</span></h1>
+  <p class="tag">Eleven Streets of Rage characters who live on your Mac's
+  desktop. They pace the length of the screen, throw the odd punch, and square
+  up when two of them end up near each other.</p>
   <div class="btns">
-    <a class="btn primary" href="https://github.com/shadi0077/desktop-buddies">View on GitHub</a>
-    <a class="btn" href="https://github.com/shadi0077/desktop-buddies#build-and-run">Build it</a>
+    <a class="btn primary" href="https://github.com/shadi0077/megadrive-buddies">View on GitHub</a>
+    <a class="btn" href="https://github.com/shadi0077/megadrive-buddies#build-and-run">Build it</a>
   </div>
 </header>
 
 <figure>
-  <img src="img/cast.png" alt="Peedy the green parrot and Bonzi the purple gorilla, each shown idle, greeting, moving, and doing a bit of business">
-  <figcaption>Two characters, deliberately opposed. Have either, or both.</figcaption>
-</figure>
-
-<h2>The idea</h2>
-<p>The Bonzi idea, minus the part everyone remembers it for: <strong>no network
-access, no analytics, no bundled anything, no browser changes, no upsell.</strong>
-They are windows that draw an animal. Quit them from the menu bar and they're gone.</p>
-
-<div class="cards">
-  <div class="card"><h4>Alive, not looping</h4><p>Energy that rises with attention and decays without it. They notice your cursor, blink on their own clock, get bored of being poked, and settle down when you leave the keyboard.</p></div>
-  <div class="card"><h4>They actually sing</h4><p>Real melodies, in tune, by imposing pitch on the synthesised voice rather than asking it to sing — which does not work.</p></div>
-  <div class="card"><h4>They talk to each other</h4><p>23 exchanges between a fussy parrot and an unbothered gorilla. Neither wins.</p></div>
-  <div class="card"><h4>Their own volume</h4><p>A slider that's theirs alone, independent of the system volume — and it doesn't change how their mouths move.</p></div>
-</div>
-
-<h2>The double act</h2>
-<div class="dialogue">
-  <p><b class="p">Peedy:</b> You're very still.</p>
-  <p><b class="b">Bonzi:</b> Thank you.</p>
-  <p><b class="p">Peedy:</b> It wasn't a compliment.</p>
-  <p><b class="b">Bonzi:</b> I'm taking it as one.</p>
-</div>
-<table>
-<tr><th></th><th>Peedy</th><th>Bonzi</th></tr>
-<tr><td>Register</td><td>quick, fussy, theatrical</td><td>slow, heavy, unbothered</td></tr>
-<tr><td>Voice</td><td>Fred, pitched up</td><td>Ralph, pitched down</td></tr>
-<tr><td>Entrance</td><td>flies in from the distance</td><td>swings in on a vine</td></tr>
-<tr><td>Bits</td><td>newspaper, notepad, telescope, ribbon</td><td>banana, coconuts, globe, a puff of smoke</td></tr>
-</table>
-
-<figure>
-  <img src="img/arrive.png" alt="Frame-by-frame: Bonzi swings in on a vine from the distance and lands">
-  <figcaption>Bonzi's entrance, frame by frame.</figcaption>
-</figure>
-
-<h2>يتكلمون سعودي</h2>
-<p>Both characters speak <strong>Najdi Arabic</strong>, switchable from the menu —
-which localises with them. Speech balloons lay out right to left.</p>
-<figure>
-  <img src="img/arabic.png" alt="Speech balloons showing Arabic lines from Peedy and Bonzi, laid out right to left">
-  <figcaption>Dialect, not textbook. The jokes are local too.</figcaption>
-</figure>
-<div class="dialogue" dir="rtl">
-  <p><b class="p">بيدي:</b> قال لي بجي بعد خمس دقايق... صار لي ساعة وأنا أعدّ.</p>
-  <p><b class="b">بونزي:</b> ليش ما أستعجل؟ الشجرة ما بتروح.</p>
-</div>
-<p>macOS exposes one Arabic voice, and its phonetics are Modern Standard — it
-says <em>qahwa</em>, not <em>gahwa</em>. So the dialect is Saudi and the
-pronunciation is fus·ḥā. What is controllable gets used: vocabulary and syntax,
-which cost the synthesiser nothing; pauses, which are the one handle on cadence;
-and pitch and pace, which is all that separates two characters sharing one
-voice.</p>
-
-<h2 id="megadrive">MegaDrive Buddies</h2>
-<p>The same engine, a different cast, its own app. Eleven Streets of Rage
-sprites who walk the length of the screen at walking pace and square up when two
-of them get close.</p>
-<figure>
   <img src="img/megadrive-buddies.png" alt="Eleven Streets of Rage sprites in a row: Axel, Blaze, Max, Skate, Adam, Axel (1991), Blaze (1991), Galsia, Donovan, Eagle and Slum">
   <figcaption>Mid-walk, on a shared baseline — the size differences are the real ones.</figcaption>
 </figure>
-<p>They have no words. They grunt, thud and shout, using the game's own sound
-effects, and their exchanges are physical: one swings, the other blocks, then
-counters. Adding them is what proved the engine could host something that isn't
-a Microsoft Agent character — no visemes, no blink frames, pixel art that has to
-be scaled without smoothing, and a sprite sheet to be cut up rather than
-numbered frames to load.</p>
-<p>The two casts ship as separate apps with separate bundle identifiers, so you
-can run both at once and each keeps its own settings. A product is a JSON
-manifest naming a cast; the build copies only those sprites, and the app filters
-its roster and its menu to match.</p>
+
+<h2>The idea</h2>
+<p>A desktop pet with nothing to sell you: <strong>no network access, no
+analytics, no bundled anything, no upsell.</strong> They are windows that draw a
+sprite. Quit them from the menu bar and they're gone.</p>
+<p>They don't talk, either. They grunt, thud and shout with the game's own sound
+effects, and their conversations are entirely physical.</p>
+
+<div class="cards">
+  <div class="card"><h4>They actually walk</h4><p>At their own pace over their own distances, the length of the screen. A heavy Max and a Skate on rollerblades stay recognisably different.</p></div>
+  <div class="card"><h4>They square up</h4><p>Two within 420 points of each other stop wandering and trade blows — taking turns, facing each other, the one not swinging turning to watch.</p></div>
+  <div class="card"><h4>Alive, not looping</h4><p>Energy that rises with attention and decays without it. They notice your cursor, get bored of being poked, and settle down when you leave the keyboard.</p></div>
+  <div class="card"><h4>Their own volume</h4><p>A slider that's theirs alone, independent of the system volume. Mute them in one click.</p></div>
+</div>
+
+<h2>Squaring up</h2>
+<figure style="max-width:420px">
+  <img src="img/sparring.png" alt="Axel throwing a punch that lands on Galsia, who is doubling over">
+</figure>
+<p>It has the shape of a conversation — take turns, face each other, nobody
+moves while somebody else is mid-swing — with the content physical: one swings,
+the other blocks or takes it, then counters. <strong>Let Them Fight</strong> in
+the menu walks two of them together first, rather than waiting for the wandering
+to bring them close.</p>
+<p>Every sprite set faces the viewer's left unmirrored, so turning to face
+somebody means mirroring.</p>
+
+<h2>Walking, properly</h2>
+<figure>
+  <img src="img/walk.png" alt="Axel's ten-frame walk cycle, laid out in a row">
+</figure>
+<p>A walk cycle played while the window jumps 500 points in half a second reads
+as moonwalking, which is exactly what this looked like before each character got
+its own pace. Travel time now comes from the character's own speed in points per
+second, so the animation matches the ground covered.</p>
+<table>
+<tr><th></th><th>distance</th><th>speed</th><th>beat</th></tr>
+<tr><td>Axel</td><td>600–2200 pt</td><td>165 pt/s</td><td>7–16 s</td></tr>
+<tr><td>Blaze</td><td>600–2200 pt</td><td>190 pt/s</td><td>6–14 s</td></tr>
+<tr><td>Max</td><td>500–1600 pt</td><td>120 pt/s</td><td>11–24 s</td></tr>
+<tr><td>Skate</td><td>900–3000 pt</td><td>300 pt/s</td><td>5–11 s</td></tr>
+</table>
 
 <h2>Getting it running</h2>
 <p>macOS 11 Big Sur or later, on Apple Silicon, plus the Xcode command line
 tools. A clone builds and runs directly — the sprites are included.</p>
-<pre><code>git clone https://github.com/shadi0077/desktop-buddies.git
-cd desktop-buddies
-./build.sh
-open "build/Desktop Buddies.app"
-open "build/MegaDrive Buddies.app"</code></pre>
-<p><code>./build.sh</code> with no argument builds both; name one
-(<code>megadrive-buddies</code>) to build just that one.</p>
+<pre><code>git clone https://github.com/shadi0077/megadrive-buddies.git
+cd megadrive-buddies
+./build.sh &amp;&amp; open "build/MegaDrive Buddies.app"</code></pre>
 <p>There's no Xcode project. <code>build.sh</code> compiles the sources with
-<code>swiftc</code> and assembles the <code>.app</code> itself.</p>
+<code>swiftc</code> and assembles the <code>.app</code> itself — about seven
+seconds and seven megabytes.</p>
 
 <div class="note">
-  <strong>On the artwork.</strong> Peedy and Bonzi are Microsoft Agent
-  characters; the Streets of Rage sprites are Sega's. They are included so this
-  runs from a clone, but they are not covered by the MIT licence and are not
-  mine to license. See
-  <a href="https://github.com/shadi0077/desktop-buddies/blob/main/docs/SPRITES.md">docs/SPRITES.md</a>.
+  <strong>On the artwork.</strong> The sprites and sounds are Sega's, ripped
+  from Streets of Rage. They're included so this runs from a clone, but they are
+  not covered by the MIT licence and are not mine to license. See
+  <a href="https://github.com/shadi0077/megadrive-buddies/blob/main/docs/SPRITES.md">docs/SPRITES.md</a>.
 </div>
 
-<h2>A couple of things I'm pleased with</h2>
+<h2>A couple of things worth knowing</h2>
 
-<h3>The mouth follows the audio, not a timer</h3>
-<p>Each line is rendered to PCM before anything plays, which gives its exact
-duration and a loudness envelope. The envelope picks a mouth shape every frame.
-Linear loudness turned out to be bimodal for speech — the beak just slammed
-between shut and wide — so it's mapped to dB over a 30&nbsp;dB window, which
-spreads the seven shapes evenly.</p>
-<figure>
-  <img src="img/lipsync.png" alt="A spoken line rendered frame by frame, with the beak opening in step with a plot of the audio's loudness">
-  <figcaption>A spoken line, against its own loudness envelope.</figcaption>
-</figure>
+<h3>The sheet is not as regular as it looks</h3>
+<p>A rip is one image with frames in irregular rows. The cutter finds bands of
+content, then columns, then splits each column at its own gaps. The exceptions
+are the whole job: captions printed beside a sprite land <em>inside</em> its
+frame at a perfectly normal size, colour swatches sit among the sprites, and the
+Streets of Rage 1 rips have no whole-body walk at all — that game composited one
+from separate torso and leg sprites, so those frames are disembodied legs.</p>
+<p>The worst of them: one column of Galsia's sheet holds two stacked sprites, so
+they came out as a single frame and he rendered as a man with a second man
+growing out of his head. Nothing about the frame's size gives that away. The
+cutter splits columns now, and a test checks every shipped frame holds exactly
+one sprite.</p>
 
-<h3>Singing needed the pitch taken away from the synthesiser</h3>
-<p>Letting <code>pitchMultiplier</code> carry a melody gives every note a 5–31
-semitone swoop, because the synthesiser applies sentence intonation to each
-isolated word. Interval errors reached 3.4 semitones and the tune was
-unrecognisable. Time-domain PSOLA — cutting one grain per glottal pulse and
-laying them down again at exactly the target period — brings that to
-<strong>0.05 semitones</strong>.</p>
+<h3>A clip that doesn't exist is silent, not loud</h3>
+<p>The rips don't cover the same ground — the Streets of Rage 2 four have a
+dozen moves each, an enemy sprite has three. Naming a clip directly means a
+character without it performs nothing at all, which is how Axel came to spend an
+afternoon doing <code>cheer</code>, a clip he hasn't got. Shared routines now go
+through a picker that drops what a character lacks, and the test suite fails on
+any clip named in a personality that the sprite set doesn't have.</p>
 
-<h3>Their volume is their own</h3>
-<figure style="max-width:480px">
-  <img src="img/volume.png" alt="The volume slider at 0, 35, 80 and 100 percent">
-</figure>
-<p>Applied as gain on the player node rather than baked into the render, so it
-takes effect mid-sentence — and the lip sync is unchanged by it. The beak moves
-identically at 5% and 100%.</p>
+<h3>Sound that fires and forgets</h3>
+<p>The rip names voice clips <code>V00</code>–<code>V52</code> and effects
+<code>00</code>–<code>49</code>, with no index of what any of them are. The
+grouping — specials shout, knockdowns thud, everything else grunts — is inferred
+from that naming plus duration. It's an inference, not a transcription, and it
+holds up because the categories are coarse.</p>
 
 <footer>
-  <p>MIT licensed — the code, at least. The characters belong to their
-  respective owners; the MIT grant does not extend to them.</p>
-  <p><a href="https://github.com/shadi0077/desktop-buddies">github.com/shadi0077/desktop-buddies</a></p>
+  <p>MIT licensed — the code, at least. The characters belong to Sega; the MIT
+  grant does not extend to them.</p>
+  <p><a href="https://github.com/shadi0077/megadrive-buddies">github.com/shadi0077/megadrive-buddies</a>
+  · split out of <a href="https://github.com/shadi0077/desktop-buddies">desktop-buddies</a></p>
 </footer>
 
 </div>

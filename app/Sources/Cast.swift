@@ -1,6 +1,6 @@
 import AppKit
 
-/// One character, fully assembled: sprites, window, animator, brain, voice.
+/// One character, fully assembled: sprites, window, animator, brain, sounds.
 final class Buddy {
     let personality: Personality
     let store: SpriteStore
@@ -8,16 +8,15 @@ final class Buddy {
     let animator: Animator
     let brain: Brain
 
-    init?(personality: Personality, language: Language, scale: CGFloat) {
+    init?(personality: Personality, scale: CGFloat) {
         guard let store = SpriteStore(character: personality.id) else { return nil }
         self.personality = personality
         self.store = store
         window = BuddyWindow(store: store, scale: scale * personality.scale)
-        window.buddyView.pixelArt = personality.pixelArt
         animator = Animator(store: store, view: window.buddyView)
-        brain = Brain(personality: personality, language: language, store: store,
+        brain = Brain(personality: personality, store: store,
                       animator: animator, window: window)
-        store.warm(["rest", "arrive", personality.travel.cruise, "greet", "blink"])
+        store.warm(["rest", "arrive", personality.walk, "guard"])
     }
 
     var id: String { personality.id }
@@ -33,37 +32,20 @@ final class Cast {
     private var timer: Timer?
 
     /// True while an exchange is running, so nothing else grabs them.
-    private(set) var talking = false
-    private var nextBanter = Date().addingTimeInterval(35)
-    private var recentBanter = RecentPicks(limit: 6)
+    private(set) var fighting = false
+    private var nextFight = Date().addingTimeInterval(35)
 
-    var chattiness: Chattiness = .occasional {
-        didSet { buddies.forEach { $0.brain.chattiness = chattiness } }
+    var liveliness: Liveliness = .occasional {
+        didSet { buddies.forEach { $0.brain.liveliness = liveliness } }
     }
 
-    private(set) var language: Language
-
-    init(language: Language, scale: CGFloat) {
-        self.language = language
+    init(scale: CGFloat) {
         for personality in Personality.all {
-            if let buddy = Buddy(personality: personality, language: language, scale: scale) {
+            if let buddy = Buddy(personality: personality, scale: scale) {
                 buddies.append(buddy)
             }
         }
         buddies.forEach { $0.start() }
-
-        // Nobody starts a line while somebody else is finishing one.
-        for buddy in buddies {
-            // Strictly "is somebody else mid-sentence". It must stay true for
-            // whoever currently holds the floor, or a character delivering a
-            // banter line would block on himself.
-            buddy.brain.mayStartTalking = { [weak self, weak buddy] in
-                guard let self, let buddy else { return true }
-                return !self.onScreen.contains {
-                    $0.id != buddy.id && $0.brain.isSpeakingNow
-                }
-            }
-        }
 
         // One slow tick is plenty; the characters run their own 60 Hz clocks.
         let t = Timer(timeInterval: 1.0, repeats: true) { [weak self] _ in self?.tick() }
@@ -73,25 +55,6 @@ final class Cast {
 
     func buddy(_ id: String) -> Buddy? { buddies.first { $0.id == id } }
 
-    /// Switch everyone over at once — a bilingual pair would be odd.
-    func speak(_ language: Language) {
-        guard language != self.language else { return }
-        self.language = language
-        talking = false
-        buddies.forEach { $0.brain.speak(language) }
-    }
-
-    /// Languages every character on screen can actually speak. A language with
-    /// no installed voice isn't offered at all.
-    var availableLanguages: [Language] {
-        // A character who doesn't speak never rules a language out.
-        Language.allCases.filter { language in
-            buddies.allSatisfy {
-                !$0.personality.speaks
-                    || $0.personality.packs[language]?.preferredVoice != nil
-            }
-        }
-    }
     var onScreen: [Buddy] { buddies.filter(\.isVisible) }
     var activeIDs: Set<String> { Set(onScreen.map(\.id)) }
 
@@ -102,8 +65,8 @@ final class Cast {
         buddy.brain.appear(at: point ?? spot(for: buddy))
     }
 
-    /// Bring several on, staggered — arriving together means greeting together,
-    /// and two voices at once is just noise.
+    /// Bring several on, staggered — arriving together means every one of them
+    /// shouting at once, which is just noise.
     func showAll(_ ids: [String], savedOrigin: @escaping (String) -> NSPoint?) {
         for (n, id) in ids.enumerated() {
             let delay = Double(n) * 3.5
@@ -137,84 +100,28 @@ final class Cast {
         return NSPoint(x: vf.midX - size.width / 2, y: vf.minY + 40)
     }
 
-    // MARK: - Them talking to each other
+    // MARK: - Squaring up
 
     private func tick() {
-        guard !talking, Date() >= nextBanter else { return }
+        guard !fighting, Date() >= nextFight else { return }
         let present = onScreen
         guard present.count > 1 else {
-            nextBanter = Date().addingTimeInterval(20)
+            nextFight = Date().addingTimeInterval(20)
             return
         }
         guard present.allSatisfy({ $0.brain.isAvailable }) else { return }
 
-        // Two brawlers who have wandered close together square up; otherwise
-        // whoever can talk has a conversation.
-        let brawlers = present.filter { !$0.personality.speaks }
-        if brawlers.count > 1 {
-            var closest = CGFloat.infinity
-            for a in brawlers {
-                for b in brawlers where b.id != a.id {
-                    closest = min(closest, abs(a.brain.centreX - b.brain.centreX))
-                }
-            }
-            if closest < 420, startSparring() { return }
-        }
-        if startBanter() { return }
-        // Nobody could talk — walk two of them together instead.
-        if brawlers.count > 1 { gatherAndSpar() }
-    }
-
-    /// Kick off an exchange now, if the cast allows one.
-    @discardableResult
-    func startBanter() -> Bool {
-        guard !talking else { return false }
-        let present = onScreen
-        guard present.count > 1, present.allSatisfy({ $0.brain.isAvailable }) else { return false }
-
-        let options = Banter.available(for: activeIDs, in: language)
-        guard !options.isEmpty else { return false }
-
-        // Pick by opening line so the no-repeat memory has something stable to
-        // key on.
-        let opener = recentBanter.pick(from: options.map { $0[0].text })
-        guard let exchange = options.first(where: { $0[0].text == opener }) else { return false }
-
-        talking = true
-        plog("banter: \(exchange.count) lines, opening \"\(opener)\"")
-        // Long enough that neither wanders off mid-conversation.
-        let hold = Double(exchange.count) * 6 + 6
-        present.forEach { $0.brain.holdBeats(for: hold) }
-        deliver(exchange, at: 0)
-        return true
-    }
-
-    private func deliver(_ exchange: [BanterLine], at index: Int) {
-        guard index < exchange.count else {
-            talking = false
-            nextBanter = Date().addingTimeInterval(Double.random(in: 50...110))
-            return
-        }
-        let line = exchange[index]
-        guard let speaker = buddy(line.who), speaker.isVisible else {
-            deliver(exchange, at: index + 1)
-            return
-        }
-        // Anyone else on screen is who he's talking to.
-        let other = onScreen.first { $0.id != speaker.id }
-
-        speaker.brain.deliver(line.text, move: line.move,
-                              facing: other?.brain.centreX) { [weak self] in
-            guard let self, self.talking else { return }
-            // A beat between lines, so it reads as conversation rather than a
-            // pair of monologues.
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
-                self.deliver(exchange, at: index + 1)
+        // Proximity is the trigger: two who have wandered close together square
+        // up, and if nobody is near anybody, two of them walk together first.
+        var closest = CGFloat.infinity
+        for a in present {
+            for b in present where b.id != a.id {
+                closest = min(closest, abs(a.brain.centreX - b.brain.centreX))
             }
         }
+        if closest < 420, startSparring() { return }
+        gatherAndSpar()
     }
-
-    // MARK: - Characters who can't talk
 
     /// One exchange of blows: who swings, and what the other one does about it.
     private static let sparring: [[(attacker: Int, clips: [String])]] = [
@@ -230,13 +137,13 @@ final class Cast {
 
     /// Two of them squaring up.
     ///
-    /// The speaking characters trade lines; these trade blows. Same shape —
-    /// take turns, face each other, nobody starts while someone else is
-    /// mid-move — but the content is physical, because they have no words.
+    /// They take turns, face each other, and nobody moves while somebody else
+    /// is mid-swing — the shape of a conversation, with the content physical
+    /// because they have no words.
     @discardableResult
     func startSparring() -> Bool {
-        guard !talking else { return false }
-        let brawlers = onScreen.filter { !$0.personality.speaks && $0.brain.isAvailable }
+        guard !fighting else { return false }
+        let brawlers = onScreen.filter { $0.brain.isAvailable }
         guard brawlers.count > 1 else { return false }
 
         // The two closest together, so it reads as them reacting to proximity
@@ -252,7 +159,7 @@ final class Cast {
         guard let (a, b) = pair else { return false }
 
         let exchange = Self.sparring.randomElement()!
-        talking = true
+        fighting = true
         plog("sparring: \(a.id) and \(b.id), \(Int(closest)) pt apart")
         let hold = Double(exchange.count) * 4 + 6
         [a, b].forEach { $0.brain.holdBeats(for: hold) }
@@ -262,9 +169,9 @@ final class Cast {
 
     private func trade(_ exchange: [(attacker: Int, clips: [String])], at index: Int,
                        between a: Buddy, and b: Buddy) {
-        guard index < exchange.count, talking else {
-            talking = false
-            nextBanter = Date().addingTimeInterval(Double.random(in: 40...90))
+        guard index < exchange.count, fighting else {
+            fighting = false
+            nextFight = Date().addingTimeInterval(Double.random(in: 40...90))
             [a, b].forEach { $0.brain.face(toward: -1) }   // back to facing front
             return
         }
@@ -275,7 +182,7 @@ final class Cast {
         other.brain.face(toward: actor.brain.centreX)
 
         actor.brain.act(step.clips, facing: other.brain.centreX) { [weak self] in
-            guard let self, self.talking else { return }
+            guard let self, self.fighting else { return }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
                 self.trade(exchange, at: index + 1, between: a, and: b)
             }
@@ -284,28 +191,13 @@ final class Cast {
 
     /// Walk two of them together and have them square up.
     func gatherAndSpar() {
-        let brawlers = onScreen.filter { !$0.personality.speaks }
-        guard brawlers.count > 1, !talking else { startSparring(); return }
+        let brawlers = onScreen
+        guard brawlers.count > 1, !fighting else { startSparring(); return }
         let a = brawlers[0], b = brawlers[1]
         let apart = abs(a.brain.centreX - b.brain.centreX)
         guard apart > b.window.frame.width * 1.3 else { startSparring(); return }
         b.brain.moveNear(x: a.brain.centreX) { [weak self] in
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { self?.startSparring() }
-        }
-    }
-
-    /// Bring them together, then have them talk.
-    func gatherAndBanter() {
-        let present = onScreen
-        guard present.count > 1, !talking else {
-            startBanter()
-            return
-        }
-        guard let first = present.first, let second = present.dropFirst().first else { return }
-        let apart = abs(first.brain.centreX - second.brain.centreX)
-        guard apart > second.window.frame.width * 1.6 else { startBanter(); return }
-        second.brain.moveNear(x: first.brain.centreX) { [weak self] in
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { self?.startBanter() }
         }
     }
 

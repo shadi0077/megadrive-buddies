@@ -104,14 +104,16 @@ for point in [faraway, onHim, onHim, onHim, faraway, faraway, onHim] {
 }
 check("notices once per approach, not per frame", notices == 2, "\(notices)")
 
-print("\ntime of day, per character and language:")
-for p in Personality.all where p.speaks {
-    for lang in Language.allCases {
-        guard let pack = p.pack(lang) else { continue }
-        check("\(p.id)/\(lang.rawValue): a line for each part of the day",
-              pack.timeOfDay.count == 4 && pack.timeOfDay.allSatisfy { !$0.isEmpty })
-    }
+print("\nliveliness scales pacing without flattening it:")
+// The point of a multiplier rather than a fixed interval: Max stays slower
+// than Skate at every setting.
+for level in Liveliness.allCases {
+    let slow = Personality.max.beatRange.lowerBound * level.pace
+    let quick = Personality.skate.beatRange.lowerBound * level.pace
+    check("\(level.title): Max is still slower than Skate", slow > quick,
+          String(format: "%.1f vs %.1f", slow, quick))
 }
+check("calm is slower than restless", Liveliness.calm.pace > Liveliness.restless.pace)
 
 print("\nno immediate repeats:")
 var picks = RecentPicks(limit: 4)

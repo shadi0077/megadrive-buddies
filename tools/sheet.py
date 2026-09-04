@@ -1,15 +1,16 @@
 """Cut a spriters-resource style sheet into frames.
 
-The Microsoft Agent characters arrived as numbered files, one frame each. Game
-rips arrive as a single sheet with frames laid out in irregular rows, so they
-need segmenting: find bands of content, then columns within each band.
+A rip is a single sheet with frames laid out in irregular rows, so it needs
+segmenting: find bands of content, then columns within each band, then split
+each column at its own vertical gaps.
 
-Usage: sheet.py <character> <sheet.png> [key_r,key_g,key_b]
+Usage: sheet.py <character> <sheet.png> [key_r,key_g,key_b | alpha] [y0:y1]
 
 Caveat worth knowing before authoring animations: a caption printed directly
-above a sprite ends up inside that frame, because the band containing both is
-one run of content. Those frames look normal by size, so they can't be filtered
-out automatically — render the numbered index and look. Blaze's walk cycle
+beside a sprite ends up inside that frame, because the column containing both
+is one run of content. Those frames look normal by size, so they can't be
+filtered out automatically — render the numbered index (tools/index.py) and
+look. Blaze's walk cycle
 starts two frames later than it appears to for exactly this reason.
 """
 from PIL import Image
@@ -75,10 +76,23 @@ for b, (y0, y1) in enumerate(bands):
               if any(not is_background(x, y) for x in range(x0, x1 + 1))]
         if not ys:
             continue
-        top, bottom = min(ys), max(ys)
-        if (x1 - x0 + 1) < 8 or (bottom - top + 1) < 8:
-            continue          # ruler marks and stray pixels, not frames
-        frames.append((b, x0, top, x1, bottom))
+        # A band is a run of content across the whole sheet, so a column inside
+        # it can still hold two sprites stacked vertically — that happens
+        # wherever the sheet packs a short second row. Split the column at its
+        # own gaps, or the two end up in one frame and the character renders
+        # with a second body growing out of his head. (Galsia did.)
+        runs, start, prev = [], ys[0], ys[0]
+        for y in ys[1:]:
+            if y - prev > 4:
+                runs.append((start, prev))
+                start = y
+            prev = y
+        runs.append((start, prev))
+
+        for (top, bottom) in runs:
+            if (x1 - x0 + 1) < 8 or (bottom - top + 1) < 8:
+                continue      # ruler marks and stray pixels, not frames
+            frames.append((b, x0, top, x1, bottom))
 
 # One canvas for everyone, anchored bottom-centre so his feet stay planted.
 cw = max(f[3] - f[1] + 1 for f in frames) + 8

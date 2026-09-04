@@ -16,20 +16,13 @@ jobs:
       - name: Show toolchain
         run: swift --version
 
-      # No argument builds every product in products/.
       - name: Build
         run: ./build.sh
 
-      # Everything except the two suites that render real audio — a runner with
-      # no audio device is a poorer test of those than a laptop is.
       - name: Test
-        run: SKIP_AUDIO=1 ./test.sh
+        run: ./test.sh
 
-      - name: Both apps target macOS 11 (first Apple Silicon release)
+      - name: Deployment target is macOS 11 (first Apple Silicon release)
         run: |
-          for app in build/*.app; do
-            name=$(basename "$app" .app)
-            echo -n "$name: "
-            otool -l "$app/Contents/MacOS/$name" \
-              | awk '/LC_BUILD_VERSION/{f=1} f&&/minos/{print "minos", $2; exit}'
-          done
+          otool -l "build/MegaDrive Buddies.app/Contents/MacOS/MegaDrive Buddies" \
+            | awk '/LC_BUILD_VERSION/{f=1} f&&/minos/{print "minos", $2; exit}'

@@ -1,68 +1,57 @@
 import AppKit
 
-/// Set PEEDY_DEBUG=1 to trace behaviour decisions on stderr.
-let peedyDebug = ProcessInfo.processInfo.environment["PEEDY_DEBUG"] == "1"
+/// Set BUDDY_DEBUG=1 to trace behaviour decisions on stderr.
+let buddyDebug = ProcessInfo.processInfo.environment["BUDDY_DEBUG"] == "1"
 
 func plog(_ message: @autoclosure () -> String) {
-    guard peedyDebug else { return }
+    guard buddyDebug else { return }
     FileHandle.standardError.write("[cast] \(message())\n".data(using: .utf8)!)
 }
 
-enum Chattiness: Int, CaseIterable {
-    case quiet = 0, occasional = 1, chatty = 2
+/// How often they do anything at all.
+enum Liveliness: Int, CaseIterable {
+    case calm = 0, occasional = 1, restless = 2
 
     var title: String {
         switch self {
-        case .quiet: return "Quiet"
+        case .calm: return "Calm"
         case .occasional: return "Occasional"
-        case .chatty: return "Chatty"
+        case .restless: return "Restless"
         }
     }
-    /// Chance an idle beat comes with a line.
-    var speakChance: Double {
-        switch self {
-        case .quiet: return 0
-        case .occasional: return 0.35
-        case .chatty: return 0.8
-        }
-    }
-    /// Multiplier on the character's own beat interval, so a quick bird and a
-    /// slow gorilla both get quieter or livelier without losing their pacing.
+    /// Multiplier on the character's own beat interval, so a lumbering Max and
+    /// a teenager on rollerblades both settle or liven up without losing the
+    /// difference between them.
     var pace: Double {
         switch self {
-        case .quiet: return 1.7
+        case .calm: return 1.7
         case .occasional: return 1.0
-        case .chatty: return 0.62
+        case .restless: return 0.62
         }
     }
 }
 
-/// Decides what the bird does and when. Everything user-visible funnels
+/// Decides what a character does and when. Everything user-visible funnels
 /// through here so only one thing is ever in flight at a time.
 final class Brain {
     let personality: Personality
-    /// What he says and how he sounds, in the language currently selected.
-    /// Nil for characters who make noise instead of talking.
-    private(set) var pack: SpeechPack?
-    /// A character's sound effects, where they have them instead of a voice.
+    /// The game's own sound effects — what these characters have instead of a
+    /// voice.
     let sounds: SoundBank?
-    private(set) var language: Language = .english
 
     /// Trace lines carry the character's name, so a two-hander is readable.
     private func plog(_ message: @autoclosure () -> String) {
-        guard peedyDebug else { return }
+        guard buddyDebug else { return }
         FileHandle.standardError.write(
             "[\(personality.id)] \(message())\n".data(using: .utf8)!)
     }
 
-    /// Set by the Cast: false while somebody else has the floor. Two characters
-    /// talking over each other is unreadable, and worse, unfunny.
-    var mayStartTalking: (() -> Bool)?
+    /// Set by the Cast: false while somebody else has the floor. Two of them
+    /// swinging at once is a scrum rather than a fight.
+    var mayAct: (() -> Bool)?
     private let store: SpriteStore
     private let animator: Animator
     private let window: BuddyWindow
-    private let bubble = SpeechBubbleWindow()
-    let voice = Voice()
 
     private enum Mode { case away, busy, idle, dragging }
     private var mode: Mode = .away
@@ -75,18 +64,15 @@ final class Brain {
 
     private var nextBeat: TimeInterval = 0
     private var clock: TimeInterval = 0
-    private var bubbleUntil: TimeInterval = 0
 
     /// In-flight travel, driven from the animator tick.
     private var travel: (from: NSPoint, to: NSPoint, t: Double, duration: Double)?
 
-    /// How lively he is, 0...1. Rises when something happens to him, decays
-    /// back toward a baseline set by whether anyone is actually at the machine.
-    /// Everything about his rhythm — gap between beats, blink rate, what he
-    /// picks to do — reads off this, so he has good spells and quiet spells
-    /// instead of one flat tempo.
+    /// How lively they are, 0...1. Rises when something happens to them and
+    /// decays back toward a baseline set by whether anyone is actually at the
+    /// machine. The gap between beats and what they pick to do both read off
+    /// it, so there are busy spells and quiet spells instead of one flat tempo.
     private var energy: Double = 0.55
-    private var nextBlink: TimeInterval = 0
     private var wasAway = false
     /// When he last entered .busy, for the stuck-state backstop below.
     private var busySince: TimeInterval = 0
@@ -99,63 +85,26 @@ final class Brain {
     private var pokeStreak = 0
     private var lastPokeAt: TimeInterval = -100
 
-    private var recentLines = RecentPicks(limit: 8)
-    private var recentJokes = RecentPicks(limit: 10)
-    private var recentFacts = RecentPicks(limit: 14)
-    private var recentSongs = RecentPicks(limit: 2)
     private var recentMoves = RecentPicks(limit: 4)
 
-    var chattiness: Chattiness = .occasional {
+    var liveliness: Liveliness = .occasional {
         didSet { scheduleBeat() }
     }
 
     var isVisible: Bool { mode != .away }
 
-    init(personality: Personality, language: Language, store: SpriteStore,
+    init(personality: Personality, store: SpriteStore,
          animator: Animator, window: BuddyWindow) {
         self.personality = personality
-        self.language = language
-        self.pack = personality.pack(language)
-        self.sounds = personality.soundSet.flatMap { SoundBank(set: $0) }
+        self.sounds = SoundBank(set: personality.soundSet)
         self.store = store
         self.animator = animator
         self.window = window
         animator.onTick = { [weak self] dt in self?.tick(dt) }
-        // Only offer a level while audio is actually playing; otherwise the
-        // animator cycles visemes on its own.
-        animator.mouthLevel = { [weak self] in
-            guard let self, self.voice.isSpeaking, self.voice.isEnabled else { return nil }
-            return self.voice.level
-        }
-        applyPack()
         wireWindow()
     }
 
-    /// Switch language. Anything mid-sentence is dropped rather than finished
-    /// in a language he's no longer speaking.
-    func speak(_ language: Language) {
-        guard language != self.language else { return }
-        self.language = language
-        pack = personality.pack(language)
-        stopSpeaking()
-        applyPack()
-        // The pools all changed, so what he said a moment ago is no guide.
-        recentLines = RecentPicks(limit: 8)
-        recentJokes = RecentPicks(limit: 10)
-        recentFacts = RecentPicks(limit: 14)
-        recentSongs = RecentPicks(limit: 2)
-        plog("language -> \(language.rawValue)")
-    }
-
-    private func applyPack() {
-        guard let pack else { return }
-        if let id = pack.preferredVoice { voice.identifier = id }
-        voice.pitch = pack.pitch
-        voice.rate = pack.rate
-        voice.personalityRoot = pack.singingRoot
-    }
-
-    /// Make a noise, for characters who have sounds rather than words.
+    /// Make a noise.
     @discardableResult
     private func makeNoise(_ kind: SoundBank.Kind) -> Bool {
         let played = sounds?.play(kind) ?? false
@@ -175,21 +124,7 @@ final class Brain {
         }
     }
 
-    /// The name he goes by in the language he's speaking.
-    var displayName: String { pack?.name ?? personality.name }
-
-    /// One line for this hour of the day, in his own language.
-    private func timeOfDayPool(_ hour: Int) -> [String] {
-        guard let pack else { return [] }
-        let slot: Int
-        switch hour {
-        case 5..<12: slot = 0
-        case 12..<18: slot = 1
-        case 18..<23: slot = 2
-        default: slot = 3           // 23 and 0..<5
-        }
-        return pack.timeOfDay.count > slot ? [pack.timeOfDay[slot]] : pack.greetings
-    }
+    var displayName: String { personality.name }
 
     // MARK: - Liveliness
 
@@ -258,48 +193,11 @@ final class Brain {
     }
 
     private func welcomeBack() {
-        guard mode == .idle, bubbleUntil == 0 else { return }
+        guard mode == .idle else { return }
         plog("welcome back")
         energy = 0.9
         scheduleBeat()
-        perform(move(["greet", "cheer", "announce", "celebrate"])) { [weak self] in
-            guard let self, self.chattiness != .quiet else { return }
-            self.say(self.recentLines.pick(from: (pack?.welcomeBack ?? [])))
-        }
-    }
-
-    // MARK: - Blinking
-
-    private func scheduleBlink() {
-        // Irregular, and quicker when he is alert. Eyes that never blink are
-        // the fastest way to make something read as a puppet.
-        nextBlink = clock + Double.random(in: 1.6...6.0) * (1.5 - energy * 0.7)
-    }
-
-    private func maybeBlink() {
-        guard clock >= nextBlink else { return }
-        scheduleBlink()
-        // Idle rest only. A "bit" owns its animator for the whole intro/loop/
-        // outro sequence and hands back through a deferred callback; blinking
-        // over the top of one would replace the clip mid-flight and strand him
-        // in the loop forever. Not worth an eye flutter.
-        // Not every sprite set has eye patches — a Genesis rip has no blink
-        // frames at all, so those characters simply don't blink.
-        guard store.animation("blink") != nil else { return }
-        guard mode == .idle, bubbleUntil == 0, animator.currentName == "rest" else { return }
-
-        // Capture the generation rather than bumping it: a blink must not
-        // invalidate anyone else's pending work, only be invalidated by it.
-        let token = generation
-        let twice = Double.random(in: 0...1) < 0.16
-        animator.play("blink") { [weak self] in
-            guard let self, self.current(token), self.mode == .idle else { return }
-            guard twice else { self.animator.play("rest"); return }
-            self.animator.play("blink") {
-                guard self.current(token), self.mode == .idle else { return }
-                self.animator.play("rest")
-            }
-        }
+        perform(move(["celebrate", "guard", "stretch"]))
     }
 
     // MARK: - Noticing the cursor
@@ -318,10 +216,10 @@ final class Brain {
                                                 wasNear: cursorWasNear, speed: cursorSpeed)
         cursorWasNear = near
         guard notice else { return }
-        guard mode == .idle, bubbleUntil == 0, clock - lastNoticed > 9 else { return }
+        guard mode == .idle, clock - lastNoticed > 9 else { return }
 
         let dx = now.x - frame.midX
-        guard mayStartTalking?() ?? true else { return }
+        guard mayAct?() ?? true else { return }
         lastNoticed = clock
         stir(0.2)
         plog(String(format: "noticed cursor dx=%.0f speed=%.0f", dx, cursorSpeed))
@@ -329,14 +227,10 @@ final class Brain {
         if cursorSpeed > 1100 {
             perform(move(["surprised", "guard", "jumpKick"]))   // shot past him
         } else {
-            // The point clip aims to the viewer's right unmirrored.
+            // The directional clips aim to the viewer's right unmirrored.
             animator.mirrored = dx < 0
             perform(move(["point", "punch", "jab"])) { [weak self] in
-                guard let self else { return }
-                self.animator.mirrored = false
-                if self.chattiness == .chatty, Double.random(in: 0...1) < 0.3 {
-                    self.say(self.recentLines.pick(from: (pack?.noticed ?? [])))
-                }
+                self?.animator.mirrored = false
             }
         }
     }
@@ -348,17 +242,13 @@ final class Brain {
         if let point { window.setFrameOrigin(point) }
         window.orderFront(nil)
         mode = .busy
+        makeNoise(.shout)
         animator.play("arrive") { [weak self] in
-            guard let self else { return }
-            self.goIdle()                     // must precede say(): goIdle
-            // Half the time he notices what time of day it is.        // plays "rest" over the hold
-            let hour = Calendar.current.component(.hour, from: Date())
-            let pool = Bool.random() ? self.timeOfDayPool(hour) : (self.pack?.greetings ?? [])
-            self.say(self.recentLines.pick(from: pool))
+            self?.goIdle()
         }
     }
 
-    /// Where he was standing before he flew off, so he can come back to it.
+    /// Where they were standing before leaving, so they come back to it.
     private(set) var lastOrigin: NSPoint = .zero
 
     func vanish(_ completion: (() -> Void)? = nil) {
@@ -366,7 +256,6 @@ final class Brain {
         lastOrigin = window.frame.origin
         cancelTravel()
         mode = .busy
-        say(recentLines.pick(from: (pack?.leaving ?? [])), pose: nil, duration: 1.6)
         animator.play("depart") { [weak self] in
             self?.hideNow()
             completion?()
@@ -374,9 +263,8 @@ final class Brain {
     }
 
     private func hideNow() {
-        voice.stop()
+        sounds?.stop()
         mode = .away
-        bubble.dismiss()
         window.orderOut(nil)
     }
 
@@ -385,37 +273,24 @@ final class Brain {
     private func goIdle() {
         _ = bump()
         mode = .idle
-        animator.endTalking()
         animator.mirrored = false
         animator.play("rest")
         scheduleBeat()
-        scheduleBlink()
     }
 
     private func scheduleBeat() {
         // Lively means shorter gaps, winding down means longer ones, and the
         // 0.55 baseline lands on the interval the user actually chose.
         nextBeat = clock + Double.random(in: personality.beatRange)
-            * chattiness.pace * (1.55 - energy)
+            * liveliness.pace * (1.55 - energy)
     }
 
     private func tick(_ dt: TimeInterval) {
         clock += dt
         updateEnergy(dt)
         advanceTravel(dt)
-        if bubbleUntil > 0, clock > bubbleUntil {
-            bubbleUntil = 0
-            bubble.dismiss()
-            animator.endTalking()
-            if mode == .idle { animator.play("rest") }
-            // Give him a breath after finishing a thought. The gap is scheduled
-            // when a beat *starts*, so without this a long turn runs straight
-            // into the next one and jokes arrive back to back.
-            nextBeat = max(nextBeat, clock + Double.random(in: personality.beatRange)
-                * chattiness.pace * 0.6)
-        }
         // Every long sequence hands back through a deferred callback, and a
-        // dropped one would leave him frozen mid-bit with no way out. Twice
+        // dropped one would leave them frozen mid-bit with no way out. Twice
         // during development that actually happened, so: a backstop.
         if mode == .busy {
             if busySince == 0 { busySince = clock }
@@ -428,19 +303,15 @@ final class Brain {
             busySince = 0
         }
 
-        maybeBlink()
         updateCursor(dt)
-        // Never start a beat mid-sentence: the body would animate out from
-        // under the mouth patches.
-        if mode == .idle, bubbleUntil == 0, clock >= nextBeat { idleBeat() }
-        repositionBubble()
+        if mode == .idle, clock >= nextBeat { idleBeat() }
     }
 
-    private enum Beat { case settle, wander, bit, flourish, turn }
+    private enum Beat { case settle, wander, bit, flourish }
 
     private func idleBeat() {
-        // Don't start anything while the other one is mid-sentence.
-        guard mayStartTalking?() ?? true else {
+        // Don't start anything while somebody else has the floor.
+        guard mayAct?() ?? true else {
             nextBeat = clock + Double.random(in: 2...5)
             return
         }
@@ -455,65 +326,46 @@ final class Brain {
                                       (.wander, (0.07 + 0.28 * energy)
                                                 * personality.roaming.restlessness),
                                       (.bit, 0.20),
-                                      (.flourish, 0.08 + 0.22 * energy),
-                                      (.turn, personality.speaks ? 0.12 + 0.26 * energy : 0)],
+                                      (.flourish, 0.20 + 0.48 * energy)],
                                      roll: Double.random(in: 0..<1)) ?? .settle
 
         switch beat {
         case .settle:
-            // Blinking has its own clock, so a settle beat is a look around —
-            // or, often enough, simply staying put. Not every beat has to
-            // produce a movement.
+            // Often enough, a settle beat is simply staying put. Not every beat
+            // has to produce a movement — standing guard is a thing they do.
             guard Double.random(in: 0...1) > 0.45 else { plog("  settle: stays put"); return }
             perform(move(["lookAround", "shrug", "guard", "stretch"]))
         case .wander:
             wanderNearby()
         case .bit:
             performBit(personality.bits.randomElement()!)
-        case .turn:
-            // Songs are long, so they come up less often than the rest.
-            perform(Self.weightedPick([(Turn.joke, 3.0), (.fact, 3.0), (.riddle, 1.6),
-                                       (.twister, 1.0), (.song, 1.0)],
-                                      roll: Double.random(in: 0..<1)) ?? .joke)
         case .flourish:
-            let name = move(personality.flourishes)
-            if Double.random(in: 0...1) < chattiness.speakChance * (0.55 + energy * 0.45) {
-                perform(name) { [weak self] in
-                    guard let self else { return }
-                    self.say(self.recentLines.pick(from: (pack?.idle ?? [])))
-                }
-            } else {
-                perform(name)
-            }
+            perform(move(personality.flourishes))
         }
-    }
-
-    /// Play a one-shot clip, then fall back to idle.
-    /// The first of these clips the character actually has.
-    ///
-    /// The two sprite sets don't cover the same ground — Peedy has a lightbulb
-    /// and a first-place ribbon, Bonzi has a vine and a banana — so the shared
-    /// routines state a preference and take what's there.
-    private func firstAvailable(_ names: [String]) -> String {
-        names.first { store.animation($0) != nil } ?? "rest"
     }
 
     /// Pick one of these, ignoring any this character hasn't got, and falling
     /// back to its own flourishes if it has none of them.
     ///
-    /// The shared routines name clips from the Agent characters — "cheer",
-    /// "shrug", "lookAround". A sprite rip from a beat-'em-up has none of those
-    /// and would otherwise silently perform nothing at all.
+    /// The rips don't cover the same ground: the Streets of Rage 2 four have a
+    /// dozen moves each, an enemy sprite has three. Naming a clip directly
+    /// means a character without it silently performs nothing at all, which is
+    /// exactly what Axel did with "cheer" before this existed.
     private func move(_ preferred: [String]) -> String {
         let available = preferred.filter { store.animation($0) != nil }
         return recentMoves.pick(from: available.isEmpty ? personality.flourishes
                                                         : available)
     }
 
+    /// Cut any noise short — used whenever something else takes over.
+    private func stopNoise() {
+        sounds?.stop()
+    }
+
     private func perform(_ name: String, then: (() -> Void)? = nil) {
         guard mode == .idle else { return }
         plog("perform \(name)")
-        if !personality.speaks { makeNoise(noise(for: name)) }
+        makeNoise(noise(for: name))
         mode = .busy
         let token = bump()
         animator.play(name) { [weak self] in
@@ -529,125 +381,22 @@ final class Brain {
         mode = .busy
         plog("bit \(bit.intro)")
         let token = bump()
-        let line = (pack?.byBit ?? [:])[bit.talk].map { recentLines.pick(from: $0) }
+        makeNoise(noise(for: bit.intro))
         animator.play(bit.intro) { [weak self] in
             guard let self, self.current(token) else { return }
             let finishBit = {
                 guard self.current(token) else { return }
                 guard let outro = bit.outro else { self.goIdle(); return }
+                self.makeNoise(self.noise(for: outro))
                 self.animator.play(outro) { self.goIdle() }
             }
-            if let loop = bit.loop {
-                self.animator.play(loop)
-                let hold = Double.random(in: bit.hold)
-                if let line, Double.random(in: 0...1) < max(self.chattiness.speakChance, 0.3) {
-                    let talkFor = min(hold, 3.4)
-                    self.showBubble(line, duration: talkFor)
-                    // Only poses with mouth patches interrupt the loop; the
-                    // rest just get a bubble and keep on looping.
-                    if let pose = bit.pose {
-                        self.animator.beginTalking(pose: pose)
-                        DispatchQueue.main.asyncAfter(deadline: .now() + talkFor) {
-                            guard self.current(token) else { return }
-                            self.animator.endTalking()
-                            self.animator.play(loop)
-                        }
-                    }
-                }
-                DispatchQueue.main.asyncAfter(deadline: .now() + hold) {
-                    guard self.current(token) else { return }
-                    self.animator.endTalking()
-                    finishBit()
-                }
-            } else {
-                if let line, Double.random(in: 0...1) < max(self.chattiness.speakChance, 0.3) {
-                    self.say(line, pose: bit.pose, duration: 2.6)
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.6) {
-                        finishBit()
-                    }
-                } else {
-                    finishBit()
-                }
+            guard let loop = bit.loop else { finishBit(); return }
+            self.animator.play(loop)
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double.random(in: bit.hold)) {
+                guard self.current(token) else { return }
+                finishBit()
             }
         }
-    }
-
-    // MARK: - Speech
-
-    func say(_ text: String, pose: String? = "neutral", duration: TimeInterval? = nil,
-             waited: TimeInterval = 0) {
-        guard personality.speaks else {
-            // Nothing to say and no mouth to say it with.
-            makeNoise(.shout)
-            return
-        }
-        guard !text.isEmpty else { return }
-        // Wait for the floor rather than talk over the other one. Beats already
-        // check this before they start, but a bit plays several seconds of
-        // animation before its line, and the other character can take the floor
-        // in between. Capped, so a long-winded neighbour can't silence him.
-        if let may = mayStartTalking, !may(), waited < 4 {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in
-                self?.say(text, pose: pose, duration: duration, waited: waited + 0.4)
-            }
-            return
-        }
-
-        // Provisional timing from the text; corrected the moment audio starts
-        // and the real duration is known.
-        let estimate = duration ?? min(6.0, 1.4 + Double(text.count) * 0.055)
-        plog(String(format: "say (%@, ~%.1fs): %@", pose ?? "no lip-sync", estimate, text))
-        showBubble(text, duration: estimate)
-
-        guard voice.isEnabled else {
-            animator.beginTalking(pose: pose)
-            return
-        }
-        voice.speak(text) { [weak self] spoken in
-            guard let self else { return }
-            plog(String(format: "  audio %.2fs", spoken))
-            self.bubbleUntil = self.clock + spoken + 0.4
-            self.animator.beginTalking(pose: pose)
-        } onFinish: { [weak self] in
-            self?.animator.endTalking()
-        }
-    }
-
-    var isSpeaking: Bool { bubbleUntil > 0 }
-
-    /// Cut a line short - used whenever something else takes over the bird.
-    private func stopSpeaking() {
-        voice.stop()
-        sounds?.stop()
-        guard bubbleUntil > 0 else { return }
-        bubbleUntil = 0
-        bubble.dismiss()
-        animator.endTalking()
-    }
-
-    fileprivate func showBubble(_ text: String, duration: TimeInterval) {
-        guard let screen = currentScreen() else { return }
-        bubble.present(text, rightToLeft: language.isRightToLeft,
-                       pointingAt: headAnchor(), on: screen)
-        bubbleUntil = clock + duration
-    }
-
-    /// Screen point just above the bird's head, where the bubble tail lands.
-    private func headAnchor() -> NSPoint {
-        let f = window.frame
-        return NSPoint(x: f.midX, y: f.maxY - f.height * 0.12)
-    }
-
-    private func repositionBubble() {
-        guard bubbleUntil > 0, bubble.alphaValue > 0, let screen = currentScreen() else { return }
-        let anchor = headAnchor()
-        var origin = bubble.frame.origin
-        origin.x = anchor.x - bubble.frame.width / 2
-        origin.y = anchor.y
-        let vf = screen.visibleFrame
-        origin.x = min(max(origin.x, vf.minX + 6), vf.maxX - bubble.frame.width - 6)
-        origin.y = min(max(origin.y, vf.minY + 6), vf.maxY - bubble.frame.height - 6)
-        bubble.setFrameOrigin(origin)
     }
 
     private func currentScreen() -> NSScreen? {
@@ -699,21 +448,21 @@ final class Brain {
             plog("wander: nowhere to go")
             return
         }
-        flyTo(target)
+        walkTo(target)
     }
 
-    /// Fly to a window origin, with takeoff and landing.
-    func flyTo(_ target: NSPoint, then: (() -> Void)? = nil) {
+    /// Walk to a window origin.
+    func walkTo(_ target: NSPoint, then: (() -> Void)? = nil) {
         guard mode == .idle || mode == .busy else { return }
-        stopSpeaking()
+        stopNoise()
         cancelTravel()
         mode = .busy
         let from = window.frame.origin
-        plog(String(format: "flyTo (%.0f,%.0f) -> (%.0f,%.0f)", from.x, from.y, target.x, target.y))
+        plog(String(format: "walkTo (%.0f,%.0f) -> (%.0f,%.0f)", from.x, from.y, target.x, target.y))
         guard hypot(target.x - from.x, target.y - from.y) > 40 else {
             goIdle(); then?(); return
         }
-        // The cruise clips face the viewer's left unmirrored, so mirror to go
+        // The walk cycles face the viewer's left unmirrored, so mirror to go
         // the other way.
         animator.mirrored = target.x > from.x
 
@@ -724,29 +473,13 @@ final class Brain {
         // teleporting under a looping walk cycle.
         let duration = max(0.4, min(14, distance / Double(personality.roaming.speed)))
 
-        let cruise = { [weak self] in
+        animator.play(personality.walk)
+        travel = (from, target, 0, duration)
+        travelDone = { [weak self] in
             guard let self, self.current(token) else { return }
-            self.animator.play(self.personality.travel.cruise)
-            self.travel = (from, target, 0, duration)
-            self.travelDone = {
-                guard self.current(token) else { return }
-                let settle = {
-                    self.animator.mirrored = false
-                    self.goIdle()
-                    then?()
-                }
-                if case .flies(_, _, let land) = self.personality.travel {
-                    self.animator.play(land) { settle() }
-                } else {
-                    settle()
-                }
-            }
-        }
-
-        if case .flies(let takeoff, _, _) = personality.travel {
-            animator.play(takeoff) { cruise() }
-        } else {
-            cruise()
+            self.animator.mirrored = false
+            self.goIdle()
+            then?()
         }
     }
 
@@ -756,11 +489,11 @@ final class Brain {
         guard var t = travel else { return }
         t.t = min(1, t.t + dt / t.duration)
         travel = t
-        // Ease in/out, plus a shallow arc so it reads as flight, not a slide.
+        // Ease in and out, so a walk starts and stops rather than snapping to
+        // full speed. No arc — they're on their feet, not in the air.
         let e = t.t < 0.5 ? 2 * t.t * t.t : 1 - pow(-2 * t.t + 2, 2) / 2
-        let lift = sin(e * .pi) * self.personality.roaming.arc
         let x = t.from.x + (t.to.x - t.from.x) * e
-        let y = t.from.y + (t.to.y - t.from.y) * e + lift
+        let y = t.from.y + (t.to.y - t.from.y) * e
         window.setFrameOrigin(NSPoint(x: x, y: y))
         if t.t >= 1 {
             window.setFrameOrigin(t.to)
@@ -776,150 +509,10 @@ final class Brain {
         travelDone = nil
     }
 
-    // MARK: - Turns
+    // MARK: - Squaring up
 
-    /// The set-piece performances, as opposed to idle fidgeting.
-    enum Turn: CaseIterable { case joke, riddle, fact, twister, song }
-
-    /// Run one, then hand back to idle. Safe to call from a menu at any time.
-    /// `userAsked` distinguishes a menu request from one of his own idle
-    /// beats: being asked for something is attention and lifts his energy,
-    /// whereas entertaining himself should not wind him up.
-    func perform(_ turn: Turn, userAsked: Bool = false) {
-        guard mode != .away else { return }
-        guard personality.speaks else {
-            // No repertoire without words — do something physical instead.
-            doATrick()
-            return
-        }
-        stopSpeaking()
-        cancelTravel()
-        mode = .idle
-        if userAsked { stir(0.3) }
-        plog("turn: \(turn)\(userAsked ? " (asked)" : "")")
-        switch turn {
-        case .joke: tellJoke()
-        case .riddle: tellRiddle()
-        case .fact: tellFact()
-        case .twister: tellTwister()
-        case .song: sing()
-        }
-    }
-
-    /// Setup, a beat to let it land, then the punchline with a flourish.
-    private func tellJoke() {
-        // Pick once: pick() mutates, so calling it inside first(where:) would
-        // re-roll for every element and compare against a moving target.
-        let setup = recentJokes.pick(from: (pack?.jokes ?? []).map(\.setup))
-        guard mode == .idle,
-              let joke = (pack?.jokes ?? []).first(where: { $0.setup == setup }) else { return }
-        say(joke.setup)
-        afterSpeaking(0.7) { [weak self] in
-            guard let self, self.mode == .idle else { return }
-            let move = self.recentMoves.pick(
-                from: ["cheer", "flourish", "announce"].filter {
-                    self.store.animation($0) != nil
-                })
-            self.perform(move) {
-                self.say(joke.punchline, pose: "announce")
-            }
-        }
-    }
-
-    /// Same shape, but a longer pause — you're meant to have a go.
-    private func tellRiddle() {
-        guard mode == .idle,
-              let riddle = (pack?.riddles ?? []).randomElement() else { return }
-        say(riddle.question)
-        afterSpeaking(2.6) { [weak self] in
-            guard let self, self.mode == .idle else { return }
-            self.perform(self.move(["point", "gestureUp"])) { self.say(riddle.answer) }
-        }
-    }
-
-    private func tellFact() {
-        guard mode == .idle else { return }
-        let fact = recentFacts.pick(from: (pack?.facts ?? []))
-        let move = firstAvailable(["idea", "announce", "cheer"])
-        let pose = store.talkPoses["idea"] != nil ? "idea" : "neutral"
-        perform(move) { [weak self] in
-            self?.say(fact, pose: pose)
-        }
-    }
-
-    private func tellTwister() {
-        guard mode == .idle else { return }
-        say(recentLines.pick(from: (pack?.twisters ?? [])))
-    }
-
-    private func sing() {
-        guard mode == .idle, voice.isEnabled else {
-            // Nothing to sing with; do something visual instead.
-            perform(recentMoves.pick(from: ["cheer", "flourish"]))
-            return
-        }
-        let title = recentSongs.pick(from: (pack?.songs ?? []).map(\.title))
-        guard let song = (pack?.songs ?? []).first(where: { $0.title == title }) else { return }
-
-        mode = .busy
-        let token = bump()
-        say(song.intro)
-        afterSpeaking(0.5) { [weak self] in
-            guard let self, self.current(token) else { return }
-            self.animator.play("announce")
-            self.voice.sing(song) { [weak self] phrase in
-                // Bubble follows the melody, one lyric line at a time.
-                guard let self, self.current(token) else { return }
-                self.showBubble(song.phrases[phrase].lyric, duration: 30)
-            } onStart: { [weak self] duration in
-                guard let self, self.current(token) else { return }
-                plog(String(format: "  singing %@ for %.1fs", song.title, duration))
-                self.animator.play("flourish")
-                self.animator.beginTalking(pose: "neutral")
-                self.bubbleUntil = self.clock + duration + 0.4
-            } onFinish: { [weak self] in
-                guard let self, self.current(token) else { return }
-                self.animator.endTalking()
-                // Back to idle first — perform() only runs from idle, so
-                // calling it while still busy would strand him mid-song.
-                self.mode = .idle
-                self.scheduleBeat()
-                self.perform(self.recentMoves.pick(
-                    from: ["proud", "cheer", "announce"].filter {
-                        self.store.animation($0) != nil
-                    }))
-            }
-        }
-    }
-
-    /// When the current line will have finished, in wall-clock seconds from now.
-    private func speechEnds() -> TimeInterval { max(0, bubbleUntil - clock) }
-
-    /// Run `work` once he has actually finished the line he is on.
-    ///
-    /// `say` sets a provisional duration from the text and corrects it when the
-    /// audio's real length is known, so scheduling off the estimate lands early
-    /// or late. Polling the actual end is accurate either way, and matters most
-    /// for a joke's punchline and for two-hander dialogue.
-    private func afterSpeaking(_ gap: TimeInterval = 0.35, _ work: @escaping () -> Void) {
-        func check() {
-            guard bubbleUntil > 0, clock < bubbleUntil else {
-                DispatchQueue.main.asyncAfter(deadline: .now() + gap, execute: work)
-                return
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { check() }
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { check() }
-    }
-
-    private func after(_ seconds: TimeInterval, _ work: @escaping () -> Void) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + max(0.05, seconds), execute: work)
-    }
-
-    // MARK: - Two-hander dialogue
-
-    /// Free to be pulled into a conversation.
-    var isAvailable: Bool { mode == .idle && bubbleUntil == 0 }
+    /// Free to be pulled into an exchange.
+    var isAvailable: Bool { mode == .idle }
 
     var centreX: CGFloat { window.frame.midX }
     var frameOnScreen: NSRect { window.frame }
@@ -933,18 +526,18 @@ final class Brain {
     /// Perform one clip as part of an exchange with somebody else: turn to
     /// them, play it, make the noise that goes with it, then call back.
     ///
-    /// The speaking characters have `deliver` for this. Two characters who
-    /// can't talk still need a way to take turns, and taking turns is most of
-    /// what makes an exchange read as an exchange.
+    /// Taking turns is most of what makes an exchange read as an exchange —
+    /// one swings, the other blocks and counters, and nobody moves while
+    /// somebody else is mid-swing.
     func act(_ preferred: [String], facing: CGFloat?,
              completion: @escaping () -> Void) {
         guard mode == .idle else { completion(); return }
-        stopSpeaking()
+        stopNoise()
         if let facing { face(toward: facing) }
         let clip = move(preferred)
         let token = bump()
         mode = .busy
-        if !personality.speaks { makeNoise(noise(for: clip)) }
+        makeNoise(noise(for: clip))
         animator.play(clip) { [weak self] in
             guard let self, self.current(token) else { completion(); return }
             self.mode = .idle
@@ -952,48 +545,13 @@ final class Brain {
             completion()
         }
     }
-    var isSpeakingNow: Bool { bubbleUntil > 0 }
-
-    /// Deliver one line of an exchange, optionally with a gesture first and
-    /// turned toward whoever he is talking to. Calls back when the line lands.
-    func deliver(_ text: String, move: String?, facing: CGFloat?,
-                 completion: @escaping () -> Void) {
-        guard mode == .idle else { completion(); return }
-        stopSpeaking()
-        stir(0.15)
-        if let facing {
-            // The directional clips aim to the viewer's right unmirrored.
-            animator.mirrored = facing < window.frame.midX
-        }
-        let token = bump()
-
-        let speak = { [weak self] in
-            guard let self, self.current(token) else { completion(); return }
-            self.say(text)
-            self.afterSpeaking(0.3) {
-                guard self.current(token) else { return }
-                self.animator.mirrored = false
-                completion()
-            }
-        }
-
-        guard let move, store.animation(move) != nil else { speak(); return }
-        mode = .busy
-        animator.play(move) { [weak self] in
-            guard let self, self.current(token) else { completion(); return }
-            self.mode = .idle
-            self.animator.play("rest")
-            speak()
-        }
-    }
-
-    /// Hold off his own idle beats — used while a conversation is running so
-    /// he doesn't wander off mid-sentence.
+    /// Hold off their own idle beats — used while an exchange is running so
+    /// nobody wanders off mid-fight.
     func holdBeats(for seconds: TimeInterval) {
         nextBeat = max(nextBeat, clock + seconds)
     }
 
-    /// Walk/fly over to stand near `x`, on the same screen.
+    /// Walk over to stand near `x`, on the same screen.
     func moveNear(x: CGFloat, completion: (() -> Void)? = nil) {
         guard mode == .idle, let screen = currentScreen() else { completion?(); return }
         let vf = screen.visibleFrame
@@ -1001,31 +559,22 @@ final class Brain {
         let side: CGFloat = x < vf.midX ? 1 : -1
         let target = min(max(x + side * (f.width * 0.85), vf.minX + 8),
                          vf.maxX - f.width - 8)
-        flyTo(NSPoint(x: target, y: f.origin.y)) { completion?() }
+        walkTo(NSPoint(x: target, y: f.origin.y)) { completion?() }
     }
 
     // MARK: - Direct interaction
 
-    /// Say hello, in his own words, sometimes noting the time of day.
+    /// Acknowledge you, in the only way they have.
     func greet() {
         guard mode == .idle else { return }
-        stopSpeaking()
+        stopNoise()
         stir(0.2)
-        guard personality.speaks else {
-            perform(move(["celebrate", "guard", "stretch"]))
-            return
-        }
-        let hour = Calendar.current.component(.hour, from: Date())
-        let pool = Bool.random() ? self.timeOfDayPool(hour) : (self.pack?.greetings ?? [])
-        perform(move(["greet", "cheer"])) { [weak self] in
-            guard let self else { return }
-            self.say(self.recentLines.pick(from: pool))
-        }
+        perform(move(["celebrate", "guard", "stretch"]))
     }
 
     func poke() {
         guard mode == .idle else { return }
-        stopSpeaking()
+        stopNoise()
         stir(0.3)
         pokeStreak = (clock - lastPokeAt < 7) ? pokeStreak + 1 : 1
         lastPokeAt = clock
@@ -1034,32 +583,25 @@ final class Brain {
         plog("poked x\(pokeStreak) -> \(reaction)")
 
         let clip: String
-        let pool: [String]?
         switch reaction {
         case .startled:
-            clip = move(["surprised", "greet", "guard"])
-            pool = pack?.poked ?? []
+            clip = move(["surprised", "guard", "jumpKick"])
         case .playful:
-            clip = move(["cheer", "greet", "point", "shrug", "punch", "jab"])
-            pool = pack?.poked ?? []
+            clip = move(["celebrate", "point", "shrug", "punch", "jab"])
         case .tiring:
             clip = move(["shrug", "lookAround", "guard"])
-            pool = pack?.pokedAgain ?? []
         case .hadEnough:
-            // He has stopped finding it interesting. A blink and nothing else.
-            nextBlink = clock
+            // They have stopped finding it interesting. Nothing at all.
+            plog("  ignoring you")
             return
         }
 
-        perform(clip) { [weak self] in
-            guard let self, self.chattiness != .quiet, let pool else { return }
-            self.say(self.recentLines.pick(from: pool))
-        }
+        perform(clip)
     }
 
     func doATrick() {
         guard mode != .away else { return }
-        stopSpeaking()
+        stopNoise()
         stir(0.25)
         cancelTravel()
         mode = .idle
@@ -1068,7 +610,7 @@ final class Brain {
 
     func comeHere() {
         guard mode != .away else { return }
-        stopSpeaking()
+        stopNoise()
         guard let screen = NSScreen.screens.first(where: {
             $0.frame.contains(NSEvent.mouseLocation)
         }) ?? NSScreen.main else { return }
@@ -1079,8 +621,9 @@ final class Brain {
         let mouse = NSEvent.mouseLocation
         let x = min(max(mouse.x - f.width / 2, vf.minX + 8), vf.maxX - f.width - 8)
         let y = min(max(mouse.y - f.height * 0.9, vf.minY + 8), vf.maxY - f.height - 8)
-        flyTo(NSPoint(x: x, y: y)) { [weak self] in
-            self?.say("Reporting for duty.")
+        walkTo(NSPoint(x: x, y: y)) { [weak self] in
+            guard let self else { return }
+            self.perform(self.move(["guard", "celebrate"]))
         }
     }
 
@@ -1088,35 +631,20 @@ final class Brain {
         window.onClick = { [weak self] in self?.poke() }
         window.onDragBegan = { [weak self] in
             guard let self else { return }
-            self.stopSpeaking()
+            self.stopNoise()
             self.cancelTravel()
             self.stir(0.35)
             plog("drag began")
             _ = self.bump()
             self.mode = .dragging
-            self.bubble.dismiss()
-            self.bubbleUntil = 0
-            self.animator.endTalking()
-            self.animator.play(self.personality.travel.cruise)
-        }
-        window.onDragMoved = { [weak self] _ in
-            self?.repositionBubble()
+            // Held up by the scruff, legs still going.
+            self.animator.play(self.personality.walk)
         }
         window.onDragEnded = { [weak self] in
             guard let self else { return }
-            self.mode = .busy
             plog("drag ended")
-            let settle = {
-                self.goIdle()
-                if self.chattiness != .quiet {
-                    self.say(self.recentLines.pick(from: (self.pack?.dropped ?? [])))
-                }
-            }
-            if case .flies(_, _, let land) = self.personality.travel {
-                self.animator.play(land) { settle() }
-            } else {
-                settle()
-            }
+            self.makeNoise(.impact)
+            self.goIdle()
         }
     }
 

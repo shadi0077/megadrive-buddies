@@ -1,34 +1,20 @@
-# Desktop Buddies
+# MegaDrive Buddies
 
-[![CI](https://github.com/shadi0077/desktop-buddies/actions/workflows/ci.yml/badge.svg)](https://github.com/shadi0077/desktop-buddies/actions/workflows/ci.yml)
+[![CI](https://github.com/shadi0077/megadrive-buddies/actions/workflows/ci.yml/badge.svg)](https://github.com/shadi0077/megadrive-buddies/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
 ![Platform](https://img.shields.io/badge/macOS-11%2B%20(Apple%20Silicon)-lightgrey)
 
-Characters who live on your macOS desktop. One codebase, **two apps**:
+Eleven Streets of Rage characters who live on your macOS desktop. They pace the
+length of the screen at walking pace, throw the odd punch, and when two of them
+end up near each other they square up and have a go.
 
-**Desktop Buddies.** **Peedy** is a parrot: quick, fussy, theatrical, opinions
-about crackers. **Bonzi** is a gorilla: slow, heavy, unbothered, arrives on a
-vine. They talk, sing, and when both are out they talk to each other.
+They don't talk. They grunt, thud and shout, using the game's own sound
+effects, and their conversations are entirely physical.
 
-**MegaDrive Buddies.** Eleven Streets of Rage sprites who walk the length of the
-screen and square up when two of them get close. They have no words — they
-grunt, and they hit each other. See [docs/MEGADRIVE.md](docs/MEGADRIVE.md).
+**No network access, no analytics, no bundled anything, no upsell.** They are
+windows that draw a sprite. Quit them from the menu bar and they're gone.
 
-They ship as separate apps with separate bundle identifiers, so you can install
-either or both, run them at the same time, and they keep separate settings.
-
-The Bonzi idea, minus the part everyone remembers it for: **no network access,
-no analytics, no bundled anything, no browser changes, no upsell.** They are
-windows that draw an animal. Quit them from the menu bar and they're gone.
-
-📖 **[shadi0077.github.io/desktop-buddies](https://shadi0077.github.io/desktop-buddies/)**
-
----
-
-> **Peedy:** You're very still.
-> **Bonzi:** Thank you.
-> **Peedy:** It wasn't a compliment.
-> **Bonzi:** I'm taking it as one.
+![The cast, mid-walk](docs/img/megadrive-buddies.png)
 
 ---
 
@@ -37,147 +23,142 @@ windows that draw an animal. Quit them from the menu bar and they're gone.
 macOS 11 or later on Apple Silicon, plus the Xcode command line tools.
 
 ```bash
-git clone https://github.com/shadi0077/desktop-buddies.git
-cd desktop-buddies
-./build.sh
-open "build/Desktop Buddies.app"
-open "build/MegaDrive Buddies.app"
+git clone https://github.com/shadi0077/megadrive-buddies.git
+cd megadrive-buddies
+./build.sh && open "build/MegaDrive Buddies.app"
 ```
 
-`./build.sh` with no argument builds both. Name one to build just that one:
-
-```bash
-./build.sh megadrive-buddies
-```
-
-> **On the artwork.** Peedy and Bonzi are Microsoft Agent characters; the
-> Streets of Rage sprites are Sega's. They are included so this runs from a
-> clone, but they are **not** covered by the MIT licence and are not mine to
-> license — see [docs/SPRITES.md](docs/SPRITES.md). Rights holders: open an
-> issue and it comes down.
+> **On the artwork.** The sprites and sounds are Sega's, ripped from Streets of
+> Rage. They're included so this runs from a clone, but they are **not** covered
+> by the MIT licence and are not mine to license — see
+> [docs/SPRITES.md](docs/SPRITES.md). Rights holders: open an issue and it comes
+> down.
 
 There is no Xcode project. `build.sh` compiles the sources with `swiftc`,
-assembles the `.app`, and ad-hoc signs it.
+assembles the `.app`, and ad-hoc signs it. The whole build is about seven
+seconds and seven megabytes.
 
-### Two apps, one codebase
+## The cast
 
-A product is a JSON manifest in `products/` — a name, a bundle identifier, and
-the cast that ships with it:
+| | |
+|---|---|
+| **Streets of Rage 2** | Axel, Blaze, Max, Skate |
+| **Streets of Rage 1** | Adam, Axel (1991), Blaze (1991) |
+| **Enemies** | Galsia, Donovan, Eagle, Slum |
 
-```json
-{
-  "id": "megadrive-buddies",
-  "name": "MegaDrive Buddies",
-  "bundleID": "com.shadi.megadrivebuddies",
-  "cast": ["axel", "blaze", "max", "skate", "..."],
-  "iconCharacter": "axel",
-  "iconFrame": 157
-}
-```
+Both games have an Axel and a Blaze, seven years apart, so the older pair carry
+the year in the menu. Have one of them out, or all eleven.
 
-`build.sh` reads it, writes the `Info.plist`, and copies **only** that product's
-sprite folders — which is why Desktop Buddies is 18 MB and MegaDrive Buddies is
-7 MB rather than both being the sum. At runtime `Product.swift` loads the
-bundled copy of the manifest and `Personality.all` filters the full roster down
-to that cast; everything downstream reads off it, so the menu drops speech items
-in a product where nobody speaks. Set `BUDDY_PRODUCT=<id>` to run the tools
-against a product without rebuilding.
+They're told apart by how they move rather than by what they say, because there
+is nothing to say:
 
-Adding a third app is a manifest and an icon frame, not a target.
+| | distance | speed | beat | restlessness |
+|---|---|---|---|---|
+| Axel | 600–2200 | 165 pt/s | 7–16 s | 2.6 |
+| Blaze | 600–2200 | 190 pt/s | 6–14 s | 2.6 |
+| Max | 500–1600 | 120 pt/s | 11–24 s | 1.6 |
+| Skate | 900–3000 | 300 pt/s | 5–11 s | 3.4 |
+| Enemies | 300–1600 | 130–160 pt/s | 9–24 s | 0.8–2.2 |
 
-## The cast — Desktop Buddies
+Max is a slow, heavy man who doesn't go far. Skate is a teenager on
+rollerblades who never stops. The enemy rips are small — a handful of poses
+each — so their repertoire is short and their beats are sparse: better a
+character who stands there convincingly than one who cycles three frames every
+four seconds.
 
-| | Peedy | Bonzi |
-|---|---|---|
-| Register | quick, fussy, theatrical | slow, heavy, unbothered |
-| Voice | Fred, pitched up | Ralph, pitched down |
-| Rate | 0.52 | 0.44 |
-| Beat interval | 9–22 s | 14–32 s |
-| Travel | flies — takeoff, cruise, landing | swings, no takeoff |
-| Entrance | flies in from the distance | swings in on a vine |
-| Bits | newspaper, notepad, headphones, sunglasses, telescope, ribbon | banana, coconuts, book, globe, headphones, sunglasses, a puff of smoke |
-| Songs | Daisy Bell, Twinkle, Row Your Boat, Polly Wolly Doodle | Swing Low, Coming Round the Mountain, Michael Row the Boat |
+## Walking
 
-They share general knowledge — neither has a claim on octopuses — but their
-small talk, jokes, songs and themed facts are entirely separate, and `test.sh`
-asserts those pools stay disjoint.
+![Axel's walk cycle](docs/img/walk.png)
 
-### Them talking to each other
+They walk, so they travel at walking pace and go a long way with it — across
+the screen, not a hop and a stop. `Roaming` carries a distance range, a speed
+in points per second and a restlessness, because a walk cycle played while the
+window jumps 500 points in half a second reads as moonwalking, which is exactly
+what it looked like before this existed.
 
-When both are on screen and both are free, they fall into an exchange. The
-comedy is all in the contrast; neither wins:
+Measured on Axel: 102 position changes over one stretch, 1846 points travelled,
+largest single step 38 points.
 
-> **Peedy:** You're very still.
-> **Bonzi:** Thank you.
-> **Peedy:** It wasn't a compliment.
-> **Bonzi:** I'm taking it as one.
+Direction is picked from the room actually available, so somebody parked against
+an edge never chooses a target that clamps back onto itself, and the travel is
+eased in and out so a walk starts and stops rather than snapping to full speed.
 
-**Let Them Chat** in the menu bar starts one on demand, gathering them together
-first if they've drifted apart. Two rules make it read as conversation rather
-than two monologues: nobody starts a line while somebody else is mid-sentence,
-and arrivals are staggered so they don't greet in unison.
+## Squaring up
 
-## The cast — MegaDrive Buddies
+![Axel's punch landing on Galsia](docs/img/sparring.png)
 
-![The MegaDrive cast, mid-walk](docs/img/megadrive-buddies.png)
+Two of them within 420 points of each other stop wandering and have a go. It
+has the shape of a conversation — take turns, face each other, nobody moves
+while somebody else is mid-swing — with the content physical: one swings, the
+other blocks or takes it, then counters.
 
-Axel, Blaze, Max and Skate from Streets of Rage 2; Adam, Axel and Blaze from the
-first game; and Galsia, Donovan, Eagle and Slum, who are enemies and behave like
-it. Both games have an Axel and a Blaze, so the 1991 pair are labelled as such.
+**Let Them Fight** in the menu walks two of them together first, rather than
+waiting for the wandering to bring them close.
 
-They work differently enough from the parrot and the gorilla to have their own
-page: one sprite sheet rather than numbered frames, sound effects rather than
-speech, walking rather than flying, and fighting rather than banter. Two of them
-within 420 points of each other stop wandering and square up.
-**[docs/MEGADRIVE.md](docs/MEGADRIVE.md)** covers the sheet cutting, the sound
-inference, and the two traps in the source art.
+Facing matters here. Every sprite set faces the viewer's left unmirrored, so
+turning to face somebody means mirroring — and whoever isn't swinging still
+turns to watch.
 
-## Arabic — Saudi
+## Sound instead of speech
 
-Both characters speak **Najdi Arabic**, switchable from **Language** in the
-menu. The menu localises with them and speech balloons lay out right-to-left.
+`SoundBank` plays short one-shots through `AVAudioPlayer`. Every animation makes
+a fitting noise, chosen by clip name: specials and celebrations shout,
+knockdowns thud, everything else grunts.
 
-![Arabic speech balloons](docs/img/arabic.png)
+The rip names voice clips `V00`–`V52` and effects `00`–`49`, with no index of
+what each one is — nobody wrote down which grunt is which. The grouping is by
+that naming convention plus duration: short voice clips are exertion, short
+effects are impacts, longer voice clips are shouts. It's an inference, not a
+transcription, and it holds up because the categories are coarse.
 
-Dialect, not textbook. `وش لونك` rather than `كيف حالك`, `أبغى` rather than
-`أريد`, and the riddles are asked the way people actually ask them — `وش الشي
-اللي...`. The jokes are local: coffee and dates, the heat, the five minutes that
-turn into an hour, the last five minutes of the working day.
+**Volume is theirs alone** — a slider in the menu, independent of the system
+volume. Turning them down doesn't quieten anything else, and turning the Mac up
+doesn't make them shout.
 
-> **بيدي:** قال لي بجي بعد خمس دقايق... صار لي ساعة وأنا أعدّ.
->
-> **بونزي:** ليش ما أستعجل؟ الشجرة ما بتروح.
+`AVAudioPlayer` is deliberate rather than incidental: these want firing and
+forgetting, and `play()` returns false on a dead audio device instead of raising
+the uncatchable ObjC exception `AVAudioPlayerNode` does.
 
-Only the facts carry across from English, because facts are facts — and even
-those are phrased in the same register. The songs are original: almost every
-Arabic song anyone would recognise is firmly in copyright.
+## Feeling alive
 
-### What the voice can and can't do
+A desktop pet is dead the moment you can feel the timer behind it. Four things
+do most of the work:
 
-macOS exposes exactly one Arabic voice, **Majed** (`ar-001`), and its phonetics
-are Modern Standard. It says *qahwa*, not *gahwa*. Nothing in software changes
-that — so the **dialect is Saudi and the pronunciation is fusḥa**, which is a
-perfectly ordinary way to read dialect aloud, but it is not a Saudi accent.
+**Energy.** A single 0–1 value that rises when something happens to them and
+decays back toward a baseline. Everything about the rhythm reads off it — the
+gap between beats, and which kind of beat gets picked. Lively means shorter gaps
+and more moving about; winding down means small, still beats and long pauses.
+Without it every gap is drawn from the same flat distribution and the tempo
+never changes.
 
-If a Saudi voice is ever installed, the app picks it up with no code change:
-`preferredLocales` asks for `ar-SA` first and only falls back to `ar-001`.
+**They know whether you're there.** `CGEventSource.secondsSinceLastEventType`
+gives seconds since the last keyboard or mouse event, needs no permission at
+all, and is the difference between a pet and a screensaver. Away for three
+minutes and the baseline drops to 0.12 — they settle rather than performing to
+an empty room.
 
-What *is* controllable, and used:
+**They notice the cursor.** Come within 250 pt and they turn and point at it;
+shoot past and they startle. This is edge-triggered on the cursor *arriving*,
+not level-triggered on it being nearby — the first version greeted a parked
+cursor every nine seconds forever, which reads as a stuck loop rather than
+attention. There's also a speed floor, so a motionless cursor doesn't count as
+an arrival when it's the character who moved.
 
-- **Vocabulary and syntax**, which is most of what makes speech sound local, and
-  costs nothing — measured, Majed reads dialect spelling at 104–119 ms/char
-  against MSA's 110–119. (I had assumed dialect would make it stumble; it
-  doesn't. Worth measuring before believing.)
-- **Pauses.** Commas and ellipses are the one handle on cadence: `يا هلا والله
-  حياك` runs 2.13 s, `يا هلا... والله... حياك` runs 2.54 s. Najdi speech leans
-  on pauses, so the lines are punctuated for it.
-- **Pitch and pace.** Both characters share the one voice, so this is all that
-  separates them: Peedy near 284 Hz, Bonzi near 128, and Bonzi much slower.
+**They get bored of you.** Poke one repeatedly and the reaction decays:
+startled, then playful, then visibly tiring of it, then nothing at all. Stop for
+seven seconds and it resets. Paired with a short memory of recent animations, so
+the same move doesn't come up three pokes running.
 
-`test.sh` renders all 356 Arabic lines and checks each reads at a normal rate —
-a line the voice can't handle shows up as a spike in ms/char, the signature of
-it spelling something out. It also checks the text is dialect rather than MSA,
-and that no Latin characters have crept in.
+Not every beat produces a movement, either. A settle beat is often just standing
+guard, which is what these characters spend most of their time doing.
+
+### A soft-lock worth knowing about
+
+A "bit" — guard then punch, knocked down then back up — owns the animator across
+its whole intro/loop/outro sequence and hands back through a deferred callback
+guarded by a generation token. Drop the callback and the character is stranded
+mid-bit forever. That has genuinely happened twice, so `Brain.tick` carries a
+60-second backstop that returns anyone stuck in `.busy` to idle.
 
 ## Using them
 
@@ -186,41 +167,31 @@ and that no Latin characters have crept in.
 | Click | They react |
 | Drag | Pick one up and put it somewhere else |
 | Right-click | Same menu as the menu bar |
-| Menu bar icon | Jokes, facts, songs, Let Them Chat, Who's Here, volume, per-character voice and pitch |
+| Menu bar icon | Do Something, Let Them Fight, Do a Trick, Who's Here, volume, per-character controls |
 
-The menu follows the cast. In MegaDrive Buddies, where nobody speaks, the items
-that need a voice aren't there at all: **Do Something** instead of Say Hello,
-**Let Them Fight** instead of Let Them Chat, **Mute Sounds** instead of Mute
-Voices, and no Language submenu.
-
-**Volume** is theirs alone — a slider in the menu, independent of the system
-volume. Turning them down doesn't quieten anything else, and turning the Mac up
-doesn't make them shout. It's gain on the player node rather than something
-baked into the render, so it takes effect mid-sentence, and the lip sync is
-unaffected: the mouth follows the clip's own normalised envelope, so the beak
-moves identically at 5% and 100%. `test.sh` asserts exactly that.
-
-**Chattiness** controls how often they do anything: Quiet, Occasional
-(default), Chatty. It scales each character's own pacing rather than replacing
-it, so a quick bird and a slow gorilla stay quick and slow. **Size** is Small /
-Medium / Large. **Mute Voices** silences both in one click. All of it persists
-between launches, including who was on screen and where they were standing.
+**Liveliness** controls how often they do anything: Calm, Occasional (default),
+Restless. It scales each character's own pacing rather than replacing it, so
+Max stays slower than Skate at every setting — `test.sh` asserts exactly that.
+**Size** is Small / Medium / Large. **Mute Sounds** silences everyone in one
+click. All of it persists between launches, including who was on screen and
+where they were standing.
 
 They are non-activating floating panels, so they never steal focus, follow you
 across Spaces, and sit above normal windows without blocking clicks — only the
-opaque pixels of the character itself take mouse events.
+opaque pixels of the sprite itself take mouse events.
 
 ### Can't see the menu bar icon?
 
-It's whoever is out, in miniature — 18pt, drawn from the sprite sheet rather
-than an SF Symbol, because a generic monochrome bird is very hard to pick out of
-a crowded bar. If it isn't showing at all, something is hiding it rather than
-failing to create it. **Bartender, Ice** and similar menu-bar managers hide
-unrecognised items by default; look in their hidden-items list. macOS also parks
-items off-screen when the bar is full, which on a notched MacBook happens sooner
-than you'd expect.
+It's whoever is out, in miniature — 18pt, cut from the sprite sheet. The sheets
+that have portrait art end with it, and a portrait reads far better at that size
+than an action frame, which flattens into an unreadable blob.
 
-Either way you're never locked out: **right-clicking either character opens the
+If it isn't showing at all, something is hiding it rather than failing to create
+it. **Bartender, Ice** and similar menu-bar managers hide unrecognised items by
+default; look in their hidden-items list. macOS also parks items off-screen when
+the bar is full, which on a notched MacBook happens sooner than you'd expect.
+
+Either way you're never locked out: **right-clicking any character opens the
 same menu.** The item sets an `autosaveName`, so once you place or unhide it,
 that choice sticks.
 
@@ -231,289 +202,121 @@ ever shipped on an Apple Silicon Mac. `test.sh` asserts the binary's `minos` and
 `Info.plist` agree on 11.0 and that an arm64 slice is present, so this can't
 regress quietly.
 
-Two things degrade rather than break on older systems:
-
-| | macOS 11–12 | macOS 13+ |
-|---|---|---|
-| Menu-bar icon | silhouette cut from the sprite sheet | full-colour sprite |
-| Open at Login | offers to open Login Items in System Preferences | one-click toggle via `SMAppService` |
-| Voices | Fred, Ralph, Junior, Albert, Zarvox | those plus Eloquence (Grandpa, Eddy) |
-
-SF Symbols didn't have a bird until macOS 13, and `NSImage(systemSymbolName:)`
-just returns nil for a symbol it doesn't know — a silently blank status item,
-which for a menu-bar-only app means no way in at all. Speech falls back to
-ordinary playback without lip sync if buffer rendering isn't available, and both
-fallbacks are covered by tests.
+One thing degrades rather than breaks on older systems: **Open at Login** offers
+to open Login Items in System Preferences on macOS 11–12, and is a one-click
+toggle via `SMAppService` from 13 on. The menu-bar icon is cut from the sprites
+rather than an SF Symbol, so it looks the same everywhere; the SF Symbol is only
+a last-resort fallback if the sprites can't be loaded at all.
 
 For Intel Macs as well, build each slice and `lipo` them together — the sources
 need no changes.
 
-## Feeling alive
+## Cutting the sheets
 
-A desktop pet is dead the moment you can feel the timer behind it. Five things
-do most of the work here:
+The rips arrive as one image per character with frames laid out in irregular
+rows. `tools/sheet.py` segments it: find horizontal bands of content, then
+columns within each band, then split each column at its own vertical gaps, then
+trim every frame to its bounding box. Frames are anchored bottom-centre on a
+shared canvas so their feet stay planted.
 
-**Energy.** A single 0–1 value that rises when something happens to him and
-decays back toward a baseline. Everything about his rhythm reads off it — the
-gap between beats, how often he blinks, and which kind of beat he picks. Lively
-means shorter gaps and more moving about; winding down means small, still beats
-and long pauses. Without it every gap is drawn from the same flat distribution
-and the tempo never changes.
+Bands map almost one-to-one onto animations — idle, walk, jab, kick, the Grand
+Upper, knockdown, and the portrait art at the end. *Almost*, and the exceptions
+are the whole job. Three have bitten:
 
-**He knows whether you're there.** `CGEventSource.secondsSinceLastEventType`
-gives seconds since the last keyboard or mouse event, needs no permission at
-all, and is the difference between a pet and a screensaver. Away for three
-minutes and his baseline energy drops to 0.12 — he settles down rather than
-performing to an empty room. Come back and he perks up and says so.
+**Captions live inside frames.** A label printed next to a sprite is part of the
+same run of content, so it lands in that frame. Those frames are a normal size,
+so no filter catches them. Blaze's walk starts two frames later than it looks
+like it should for this reason. I tested whether an unusually-short-frame rule
+would help; it would have thrown away her projectile and her lying-down poses
+instead.
 
-**He notices the cursor.** Come within 250 pt and he leans and points at it;
-shoot past and he startles. This is edge-triggered on the cursor *arriving*,
-not level-triggered on it being nearby — the first version greeted a parked
-cursor every nine seconds forever, which reads as a stuck loop rather than
-attention. There's also a speed floor so a motionless cursor doesn't count as
-an arrival when it's he who moved.
+**A column can hold two sprites.** Wherever a sheet packs a short second row,
+one column of a band contains two stacked sprites — and they come out as a
+single frame. Galsia shipped like that: a man with a second man growing out of
+his head. Nothing about the frame's size gives it away. The cutter now splits
+columns at their own gaps, and `test.sh` checks every shipped frame holds
+exactly one sprite, so this particular embarrassment can't come back.
 
-**Blinking has its own clock.** Every 1.6–6 s, irregular, faster when he's
-alert, occasionally a double. It's the cheapest possible fix for the deadest
-possible tell: eyes that never move. It's deliberately confined to idle rest —
-see the note below.
+**The Streets of Rage 1 rips have no whole-body walk.** That game composited a
+walk from separate torso and leg sprites, so frames 3–10 of each character are
+disembodied legs. The trio glide on their idle and roam much less, which is
+better than animating a pair of trousers across the desktop.
 
-**He gets bored of you.** Poke him repeatedly and the reaction decays:
-startled, then playful, then visibly tiring of it, then nothing but a blink.
-Stop for seven seconds and it resets. Paired with a short memory of recent
-lines and animations, so he stops saying "Careful, the feathers are
-load-bearing" three pokes running — which is what the earlier traces actually
-showed him doing.
+The pipeline, end to end:
 
-Not every beat produces a movement, either. A settle beat is often just staying
-put, which is what real animals spend most of their time doing.
-
-### A soft-lock worth knowing about
-
-Blinking only ever happens over idle rest. A "bit" — reading, writing,
-headphones — owns the animator across its whole intro/loop/outro sequence and
-hands back through a deferred callback guarded by a generation token. An
-independent blink that bumped that token, or that replaced the loop clip
-mid-flight, would strand him reading a newspaper forever. The blink now captures
-the generation rather than bumping it, so it can be invalidated by other work
-but can never invalidate anyone else's.
-
-## What they actually do
-
-Beyond fidgeting, he has a repertoire — all of it bundled, since he has no
-network access and never will.
-
-| | |
-|---|---|
-| **Jokes** | 25, told properly: setup, a beat to let it land, then the punchline with a flourish |
-| **Facts** | 32, and they're all true — parrots, birds, computing history, and assorted trivia |
-| **Riddles** | 12, with a longer pause before the answer so you can have a go |
-| **Tongue twisters** | 7, which a formant synthesiser makes funnier than they deserve |
-| **Songs** | 4, actually sung — see below |
-
-Jokes, facts and songs are on the menu directly; riddles and tongue twisters are
-under **More**. They also come up on their own as he idles. Recent picks are
-remembered so he works through the material rather than looping a favourite.
-
-### When there's no audio device
-
-`AVAudioPlayerNode.play()` raises "player did not see an IO cycle" — an ObjC
-exception Swift cannot catch, so a hard crash — if it lands before the engine's
-IO thread has cycled. `engine.isRunning` is *not* proof that it has: with no
-usable output device it returns true while nothing ever renders.
-
-So the engine is started at launch and left running, and a tap on the main mixer
-provides the only trustworthy signal — its first callback means a render cycle
-happened. Playback waits for that, and if it never comes he **mimes**: the
-bubble still keeps time and the beak still opens on the right syllables, there
-is simply no sound. Much better than going silent and still, and far better than
-crashing. `test.sh` covers that path.
-
-### Singing
-
-They actually sing — a real melody, in tune.
-
-The obvious approach does not work, and the numbers say why. Rendering each
-syllable as its own utterance and letting `pitchMultiplier` carry the tune gave,
-measured across Twinkle:
-
-| | before | after |
-|---|---|---|
-| Worst interval error | **3.4 semitones** | **0.05 semitones** |
-| Pitch movement within a note | 5–31 semitones | steady |
-| Silence between notes | 11–34% | none — notes butt together |
-| Length vs the written score | ~2× long | exact |
-
-The synthesiser applies sentence intonation to every isolated word, so each
-"note" was a swoop rather than a tone, and the tune was unrecognisable.
-
-So the pitch is taken away from it, by **time-domain PSOLA**: find the source's
-glottal pulses, cut one grain per pulse, and lay those grains down again at
-exactly the target period. The grains carry the syllable's formants; their new
-spacing dictates the pitch. Output length is chosen rather than inherited, so
-notes join without padding and the line is legato.
-
-Three things that each mattered, and each showed up as a specific measured failure:
-
-- **Grains must be pitch-synchronous.** Overlap-adding at arbitrary phase makes
-  grains cancel instead of reinforce; the first attempt was *worse* than doing
-  nothing (14-semitone errors). Snapping each grain to a local energy peak fixes it.
-- **The fundamental is the *first* strong autocorrelation peak**, not the last.
-  Scanning from the long end looks like it avoids locking onto a harmonic, but
-  lands on a sub-harmonic — it reported 196 Hz as 96 Hz.
-- **Measure the voice once, not the syllable.** Detecting the period of a single
-  short syllable is unreliable: "sw" and "ch" read as harmonics, and PSOLA on a
-  wrong period lets the source pitch leak through. Each voice's natural pitch is
-  measured once over a long voiced phrase (Fred 114 Hz, Ralph 79 Hz) and the
-  syllable is rendered at a known multiplier, so its pitch is known rather than
-  guessed.
-
-Consonants keep their natural speed and the vowel absorbs the stretch, so a
-two-beat note is a held vowel rather than a drawn-out "st".
-
-`tools/dsptest` validates the resynthesis on synthetic signals where the answer
-is known — pitch imposed to within 0.1 semitones from 98 to 330 Hz, exact
-durations, steady notes, consonants preserved on long notes — so a failure there
-is unambiguously the DSP rather than the speech synthesiser.
-`tools/singanalyze <character>` prints the per-note report for a real song.
-
-Songs are transposed per character rather than per song: Peedy's tonic is 196 Hz
-(G3), Bonzi's 123 Hz (B2), roughly an octave apart.
-
-## The voices
-
-They talk. MS Sam is a Windows SAPI voice and isn't ours to ship, so he uses the
-nearest thing macOS has: **Fred**, the classic MacinTalk formant synthesiser —
-same era, same flat robotic register. Ralph, Junior, Albert, Zarvox and the two
-Eloquence voices (Grandpa, Eddy) are in the **Voice** submenu; picking one
-auditions it. Only voices actually installed on the machine are listed.
-
-He is pitched up from there, because he is a parrot rather than a Windows
-dialog box. `pitchMultiplier` tracks the fundamental almost exactly linearly on
-Fred, whose natural F0 is about 116 Hz, so the **Pitch** menu measures out as:
-
-| setting | multiplier | measured F0 |
-|---|---|---|
-| Deep | 0.85 | 100 Hz |
-| Low | 1.15 | 133 Hz |
-| High *(default)* | 1.50 | 174 Hz |
-| Squeaky | 1.85 | 212 Hz |
-
-Those numbers are measured by autocorrelation in `test.sh`, not taken on faith —
-some voices ignore the pitch request entirely, and the test would catch that.
-Pitch does not affect the lip sync, which is amplitude-based.
-
-**The beak follows the audio, not a timer.** Each line is rendered to PCM before
-anything plays, which buys two things a plain `speak()` can't: the exact
-duration up front, so the bubble matches the speech instead of guessing from
-string length, and a loudness envelope to pick a viseme from every frame.
-
-Two findings shaped this:
-
-- MS Agent drove its seven mouth shapes from phonemes, and `NSSpeechSynthesizer`
-  used to expose a phoneme callback. On current macOS it never fires and
-  `phonemesFromText:` returns error -50 — so phoneme-accurate sync is off the
-  table. Word-boundary callbacks still work, but loudness is finer-grained.
-- Linear loudness is bimodal for speech: nearly every sample lands near silence
-  or near the peak, so the beak just slams between shut and wide and the five
-  shapes in between never appear. Mapping to dB over a 30 dB window spreads them
-  evenly — roughly `22/9/10/8/3/24/23` across the ramp, against `22/15/7/4/5/5/41`
-  for linear. `tools/tune` is the experiment those numbers came from.
-
-The seven patches per pose are visemes, not an openness ramp, so `tools/catalog.py`
-orders them closed → widest by measuring the vertical span of beak-yellow pixels.
-Index 4 is widest in all six poses and 0/5/6 cluster as near-closed, giving
-`[0,5,6,1,2,3,4]`. See `shots/lipsync.png` for a spoken line rendered frame by
-frame against its envelope.
-
-## How it works
-
-`assets/` holds the original 705-frame Peedy sprite dump. Those frames are not
-a simple flipbook: the background is a cyan colour key, and only about 70% of
-the frames are full bodies. The rest are small patches meant to be composited
-over a held pose — groups of seven are lip-sync mouth shapes, groups of two are
-eye blinks. The tooling in `tools/` reverse-engineers that structure:
+```bash
+./setup.sh galsia ~/Downloads/galsia.png   # cut the sheet, render the index
+python3 tools/index.py galsia              # numbered contact sheet — look at it
+python3 tools/catalog.py                   # after authoring the ranges
+```
 
 | script | what it does |
 |---|---|
-| `extract.py` | Keys out cyan (`#00FFFF`) to alpha, measures every frame |
-| `pack.py` | Trims each frame to its opaque bounds, records the offset |
-| `catalog.py` | Emits the animation catalog (clip ranges, fps, loop flags) |
-| `strips.py`, `detail.py` | Labelled contact sheets used to identify the clips |
-| `icon.py` | Builds `<product>.icns` from a hero frame — `python3 tools/icon.py megadrive-buddies` |
-| `sheet.py` | Cuts a single game sprite sheet into frames (the MegaDrive characters) |
+| `sheet.py` | Cuts a sheet into trimmed, anchored frames |
+| `index.py` | Numbered contact sheet — the only way to author ranges honestly |
+| `catalog.py` | The hand-authored animation catalogue: clip ranges, fps, loop flags |
+| `sounds.py` | Packs the game's sound rip into the shared sound set |
+| `icon.py` | Builds the app icon from a hero frame |
+| `lineup.py` | The cast picture at the top of this README |
 
-Rerun the whole pipeline with:
-
-```bash
-python3 tools/extract.py && python3 tools/pack.py && python3 tools/catalog.py
-```
-
-The app ships 36 named clips (`rest`, `arrive`, `depart`, `takeoff`/`fly`/`land`,
-plus bits like reading a newspaper, taking notes, headphones, sunglasses,
-telescope, and a first-place ribbon) and six lip-sync poses. Costume bits have
-no "take it off" frames in the source set, so their intro clip is played
-backwards to undo it — which is what the original did too.
-
-### Code
+## How it works
 
 | file | role |
 |---|---|
-| `SpriteStore.swift` | Manifest loading, lazy frame decode, `NSCache` |
-| `BuddyView.swift` | Composites body + overlay, mirrors for direction, pixel-accurate hit testing |
+| `SpriteStore.swift` | Frame atlas loading, lazy decode, `NSCache` |
+| `BuddyView.swift` | Draws a frame, mirrors for direction, pixel-accurate hit testing |
 | `Animator.swift` | One 60 Hz tick drives both the sprite clock and motion |
-| `Brain.swift` | Behaviour state machine — idle beats, wandering, reactions |
-| `SpeechBubble.swift` | Balloon drawn as a single continuous path so the tail has no seam |
-| `Voice.swift` | Renders speech and song to PCM, imposes sung pitch, plays it, exposes a live loudness level |
+| `Brain.swift` | Behaviour state machine — idle beats, walking, reactions |
+| `Cast.swift` | Assembles each character; runs the sparring |
+| `Personality.swift` | What makes one of them not the other — pace, reach, moves |
+| `SoRPersonalities.swift` | The other ten |
+| `SoundBank.swift` | The game's sound effects, and which one suits which move |
+| `Product.swift` | Reads the bundled manifest: the name, and who ships |
 | `VolumeSlider.swift` | The app's own volume control, in the menu |
-| `Cast.swift` | Assembles each character; runs the two-hander dialogue |
-| `Personality.swift` | What makes one of them not the other — voice, pacing, clips, lines |
-| `Product.swift` | Which app this is: reads the bundled manifest, filters the roster |
-| `SoundBank.swift` | Game sound effects for the characters who don't speak |
-| `Banter.swift` | The exchanges between them |
-| `Chatter.swift` | The few lines that read the same in either mouth, and the no-repeat picker |
-| `Repertoire.swift` | Shared facts and riddles, and the songs as note data |
 | `AppDelegate.swift` | Menu bar item, preferences, login item |
 
-Set `PEEDY_DEBUG=1` to trace behaviour decisions on stderr:
+A product is a JSON manifest in `products/` — a name, a bundle identifier and a
+cast. The build copies only that cast's sprites and stamps the name and bundle
+id into the app, so shipping a subset (one game, say) is a JSON file rather than
+a target.
+
+Set `BUDDY_DEBUG=1` to trace behaviour decisions on stderr, and
+`BUDDY_TURN=fight` to start a scrap on launch rather than waiting:
 
 ```bash
-PEEDY_DEBUG=1 "./build/Desktop Buddies.app/Contents/MacOS/Desktop Buddies"
+BUDDY_DEBUG=1 "./build/MegaDrive Buddies.app/Contents/MacOS/MegaDrive Buddies"
 ```
 
-### Tests
+```
+[axel] wander from 4694,122 in 0,82 5120x1328
+[axel] walkTo (4694,122) -> (3504,90)
+[cast] sparring: axel and blaze, 214 pt apart
+```
+
+## Tests
 
 ```bash
 ./test.sh
 ```
 
-Checks the wander target maths (the edge cases are the whole point), asserts the
-lip-sync registration invariant, exercises the speech path end to end, and
-renders every animation headlessly through the real `BuddyView` into `shots/`.
+Checks the deployment target, that every clip a personality names actually
+exists, that every shipped frame holds exactly one sprite, the wander target
+maths (the edge cases are the whole point), the liveliness rules, and the volume
+slider — then renders every animation headlessly through the real `BuddyView`
+into `shots/`, which is how the sprite work gets eyeballed without needing
+screen-recording permission.
 
-**The lip-sync invariant:** a mouth patch is drawn to register with exactly one
-body frame, so it may only ever be composited onto that frame. Put one on any
-other pose and you get a rectangle of beak floating in the middle of the bird.
-`Animator.render()` enforces this, `tools/talktest` proves it, and poses with no
-mouth patches in the sprite set (headphones, sunglasses, monocle) simply speak
-with a still beak. The brain also refuses to start an idle beat mid-sentence,
-since that would animate the body out from under the mouth.
-
-`tools/render/main.swift` renders animations headlessly through the real
-`BuddyView` — useful for checking frame registration without a screenshot:
-
-```bash
-swiftc -O -framework AppKit app/Sources/SpriteStore.swift app/Sources/BuddyView.swift \
-  app/Sources/SpeechBubble.swift tools/render/main.swift -o build/render && ./build/render
-```
-
-Output lands in `shots/`.
+`tools/casttest` is the one that catches most mistakes: name a clip a character
+hasn't got and it says so, rather than the character silently performing
+nothing. That is exactly how Axel came to be doing `cheer` — a clip that doesn't
+exist — for a whole afternoon.
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) — it covers getting it running, the three
-failure modes that have bitten repeatedly, and how to add a character or a third
-app.
+See [CONTRIBUTING.md](CONTRIBUTING.md) — it covers getting it running, the
+failure modes that have bitten repeatedly, and how to add a character. There is
+already a Streets of Rage 3 Axel extracted in `app/Resources/characters/axel3`
+with no animation ranges authored for him, if you want somewhere to start.
 
 ## Licence
 
@@ -521,7 +324,6 @@ MIT, for the code. See [LICENSE](LICENSE).
 
 ## Sprites
 
-Peedy and Bonzi are Microsoft Agent characters; Axel, Blaze and the rest are
-Sega's, ripped from Streets of Rage. They are used here as-is and are not mine
-to license. Fine for personal use — check before shipping this anywhere. See
-[docs/SPRITES.md](docs/SPRITES.md).
+Axel, Blaze and the rest are Sega's, ripped from Streets of Rage / Bare Knuckle.
+They are used here as-is and are not mine to license. Fine for personal use —
+check before shipping this anywhere. See [docs/SPRITES.md](docs/SPRITES.md).

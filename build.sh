@@ -1,12 +1,11 @@
 #!/bin/bash
-# Builds one product, or both.
+# Builds every product in products/ — there is one, MegaDrive Buddies.
 #
-#   ./build.sh                     both
-#   ./build.sh desktop-buddies     just that one
+#   ./build.sh                       all of them
+#   ./build.sh megadrive-buddies     just that one
 #
-# One codebase, two apps: they share the whole engine and differ only in who
-# ships with them and what the app is called. Each gets its own bundle
-# identifier, so both can run at once and keep their own settings.
+# A product is a manifest naming a cast; the build copies only that cast's
+# sprites and stamps the name and bundle identifier into the app.
 set -euo pipefail
 cd "$(dirname "$0")"
 

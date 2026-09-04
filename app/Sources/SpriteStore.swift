@@ -1,11 +1,8 @@
 import AppKit
 
-/// One drawable step of an animation: a body frame plus an optional overlay
-/// (the original sprite set stores lip-sync mouths and eye blinks as small
-/// patches meant to be composited over a held body pose).
+/// One drawable step of an animation: a frame of the sheet.
 struct Step {
     let frame: Int
-    let overlay: Int?
 }
 
 struct AnimationDef {
@@ -15,25 +12,6 @@ struct AnimationDef {
     let loop: Bool
 
     var duration: TimeInterval { Double(steps.count) / fps }
-}
-
-struct TalkPose {
-    let body: Int
-    /// Authoring order, used when cycling on a timer.
-    let mouths: [Int]
-    /// The same patches ordered closed -> widest, for amplitude-driven sync.
-    let ramp: [Int]
-
-    /// Pick a mouth for a loudness in 0...1.
-    func mouth(forLevel level: Float) -> Int {
-        guard !ramp.isEmpty else { return mouths.first ?? 0 }
-        let i = Int(level.clamped01() * Float(ramp.count - 1) + 0.5)
-        return ramp[min(max(i, 0), ramp.count - 1)]
-    }
-}
-
-extension Float {
-    func clamped01() -> Float { self < 0 ? 0 : (self > 1 ? 1 : self) }
 }
 
 /// Loads the trimmed frame atlas and hands out decoded images on demand.
@@ -49,7 +27,6 @@ final class SpriteStore {
     private let cache = NSCache<NSNumber, NSImage>()
 
     private(set) var animations: [String: AnimationDef] = [:]
-    private(set) var talkPoses: [String: TalkPose] = [:]
 
     let character: String
 
@@ -89,20 +66,10 @@ final class SpriteStore {
                       let fps = d["fps"] as? Double,
                       let loop = d["loop"] as? Bool else { continue }
                 let steps = rawSteps.compactMap { s -> Step? in
-                    guard let f = s["f"] as? Int else { return nil }
-                    return Step(frame: f, overlay: s["o"] as? Int)
+                    (s["f"] as? Int).map { Step(frame: $0) }
                 }
                 guard !steps.isEmpty else { continue }
                 animations[name] = AnimationDef(name: name, steps: steps, fps: fps, loop: loop)
-            }
-        }
-        if let talk = aRoot["talk"] as? [String: Any] {
-            for (name, raw) in talk {
-                guard let d = raw as? [String: Any],
-                      let body = d["body"] as? Int,
-                      let mouths = d["mouths"] as? [Int], !mouths.isEmpty else { continue }
-                talkPoses[name] = TalkPose(body: body, mouths: mouths,
-                                           ramp: d["ramp"] as? [Int] ?? mouths)
             }
         }
     }
