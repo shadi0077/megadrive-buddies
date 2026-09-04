@@ -5,8 +5,11 @@ import AppKit
 _ = NSApplication.shared
 let who = CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : "axel"
 // Portraits where the sheet has them; they read far better at 18pt than an
-// action frame does.
-let heroes = ["axel": 157, "blaze": 181, "max": 145, "skate": 88, "slum": 12]
+// action frame does. Mirrors `AppDelegate.statusIcon()` — if these drift, the
+// test stops covering the icon the app actually shows.
+let heroes = ["axel": 157, "blaze": 181, "max": 145, "skate": 88, "slum": 12,
+              "sonic": 26, "tails": 145, "knuckles": 18, "robotnik": 129,
+              "mecha": 12, "ristar": 0, "terry": 0, "sonic3d": 9]
 let hero = heroes[who] ?? 0
 guard let store = SpriteStore(character: who,
                               bundle: Bundle(path: ProcessInfo.processInfo

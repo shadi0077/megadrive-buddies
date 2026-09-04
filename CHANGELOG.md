@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.1
+
+- **Eight more characters, from four more games.** Sonic, Tails, Knuckles,
+  Dr. Robotnik and Mecha Sonic from the Sonic games, a second Sonic from
+  3D Blast (pre-rendered rather than drawn, and unmistakably so next to the
+  other one), Ristar, and Terry Bogard out of Fatal Fury 2. Nineteen in all.
+- Sizes are per character and deliberately uneven: a Mega Drive Sonic is 38
+  pixels tall and Terry Bogard is 92, so levelling them would make a hedgehog
+  the size of a man.
+- Sonic travels at 420 pt/s on his run cycle — the fastest thing here, and the
+  reason travel animation is chosen per character rather than fixed.
+- **Silence is now a supported state.** Only the Streets of Rage rip came with
+  sound, so `soundSet` is optional: the Sonic cast and Ristar make no noise at
+  all, and the tests assert that rather than treating it as a missing bank.
+- The sheet cutter learned to survive annotated sheets — marker bars between
+  cells, full-width rules, and per-frame panels — because every one of those
+  welds neighbouring sprites into a single frame.
+
 ## 1.0
 
 First release.

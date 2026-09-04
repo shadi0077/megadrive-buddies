@@ -4,12 +4,13 @@
 [![License: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
 ![Platform](https://img.shields.io/badge/macOS-11%2B%20(Apple%20Silicon)-lightgrey)
 
-Eleven Streets of Rage characters who live on your macOS desktop. They pace the
-length of the screen at walking pace, throw the odd punch, and when two of them
-end up near each other they square up and have a go.
+Nineteen Mega Drive characters who live on your macOS desktop. They pace the
+length of the screen at their own speeds, do the things their games had them
+do, and when two of them end up near each other they square up and have a go.
 
-They don't talk. They grunt, thud and shout, using the game's own sound
-effects, and their conversations are entirely physical.
+Nobody talks. The Streets of Rage cast grunt, thud and shout with the game's
+own sound effects; the rest go about it in silence. Every conversation here is
+physical.
 
 **No network access, no analytics, no bundled anything, no upsell.** They are
 windows that draw a sprite. Quit them from the menu bar and they're gone.
@@ -50,27 +51,38 @@ seconds and seven megabytes.
 |---|---|
 | **Streets of Rage 2** | Axel, Blaze, Max, Skate |
 | **Streets of Rage 1** | Adam, Axel (1991), Blaze (1991) |
-| **Enemies** | Galsia, Donovan, Eagle, Slum |
+| **Streets of Rage enemies** | Galsia, Donovan, Eagle, Slum |
+| **Sonic the Hedgehog** | Sonic, Tails, Knuckles, Dr. Robotnik, Mecha Sonic, Sonic (3D Blast) |
+| **Ristar** | Ristar |
+| **Fatal Fury 2** | Terry Bogard |
 
-Both games have an Axel and a Blaze, seven years apart, so the older pair carry
-the year in the menu. Have one of them out, or all eleven.
+Both Streets of Rage games have an Axel and a Blaze, seven years apart, so the
+older pair carry the year in the menu; the 3D Blast Sonic is pre-rendered
+rather than drawn and looks it, which is why he ships alongside the Sonic 2
+one rather than instead of him. Have one of them out, or all nineteen.
 
 They're told apart by how they move rather than by what they say, because there
 is nothing to say:
 
 | | distance | speed | beat | restlessness |
 |---|---|---|---|---|
-| Axel | 600–2200 | 165 pt/s | 7–16 s | 2.6 |
-| Blaze | 600–2200 | 190 pt/s | 6–14 s | 2.6 |
-| Max | 500–1600 | 120 pt/s | 11–24 s | 1.6 |
+| Sonic | 1000–3600 | 420 pt/s | 5–12 s | 3.6 |
 | Skate | 900–3000 | 300 pt/s | 5–11 s | 3.4 |
-| Enemies | 300–1600 | 130–160 pt/s | 9–24 s | 0.8–2.2 |
+| Blaze | 600–2200 | 190 pt/s | 6–14 s | 2.6 |
+| Axel | 600–2200 | 165 pt/s | 7–16 s | 2.6 |
+| Max | 500–1600 | 120 pt/s | 11–24 s | 1.6 |
+| Dr. Robotnik | 300–1100 | 120 pt/s | 10–22 s | 1.2 |
 
-Max is a slow, heavy man who doesn't go far. Skate is a teenager on
-rollerblades who never stops. The enemy rips are small — a handful of poses
-each — so their repertoire is short and their beats are sparse: better a
-character who stands there convincingly than one who cycles three frames every
-four seconds.
+Sonic crosses the whole screen and travels on his run cycle, because at 420
+points per second a walk cycle reads as a moonwalk. Max is a slow, heavy man
+who doesn't go far, and Robotnik is slower still. The enemy rips are small — a
+handful of poses each — so their repertoire is short and their beats are
+sparse: better a character who stands there convincingly than one who cycles
+three frames every four seconds.
+
+Sizes are per character too, and deliberately not levelled: a Mega Drive Sonic
+is 38 pixels tall and Terry Bogard is 92, and pretending otherwise would make
+a hedgehog the size of a man. They're nudged toward each other, not flattened.
 
 ## Walking
 
@@ -110,6 +122,12 @@ turns to watch.
 `SoundBank` plays short one-shots through `AVAudioPlayer`. Every animation makes
 a fitting noise, chosen by clip name: specials and celebrations shout,
 knockdowns thud, everything else grunts.
+
+Only the Streets of Rage cast and Terry have a sound set — that rip is the one
+we have. The Sonic characters and Ristar are silent, which the app treats as an
+ordinary state rather than a missing feature: `soundSet` is optional, a
+character without one simply makes no noise, and `test.sh` asserts that each of
+them declares it rather than failing to find a bank.
 
 The rip names voice clips `V00`–`V52` and effects `00`–`49`, with no index of
 what each one is — nobody wrote down which grunt is which. The grouping is by
@@ -158,13 +176,22 @@ the same move doesn't come up three pokes running.
 Not every beat produces a movement, either. A settle beat is often just standing
 guard, which is what these characters spend most of their time doing.
 
-### A soft-lock worth knowing about
+### Soft-locks worth knowing about
 
 A "bit" — guard then punch, knocked down then back up — owns the animator across
 its whole intro/loop/outro sequence and hands back through a deferred callback
 guarded by a generation token. Drop the callback and the character is stranded
 mid-bit forever. That has genuinely happened twice, so `Brain.tick` carries a
 60-second backstop that returns anyone stuck in `.busy` to idle.
+
+The third time was the platformer cast arriving. `Animator.play` only calls
+back for a clip that *finishes*, and a looping one never does — which was fine
+while every flourish was a punch, and stopped being fine the moment Sonic's
+repertoire included his run cycle and Tails' included flight. The backstop
+caught it, which is the point of having one: the trace read `[sonic] perform
+walk` and then, sixty seconds later, `stuck busy for 60s — recovering`. Clips
+now go through `Brain.playOnce`, which hands back on a timer when the clip
+loops, so a looping flourish reads as a beat of running on the spot.
 
 ## Using them
 
@@ -247,6 +274,20 @@ exactly one sprite, so this particular embarrassment can't come back.
 walk from separate torso and leg sprites, so frames 3–10 of each character are
 disembodied legs. The trio glide on their idle and roam much less, which is
 better than animating a pair of trousers across the desktop.
+
+**Sheets annotate themselves, and the annotations are hazards.** The Sonic
+sheets mark "place between other frames" with a green bar, the Knuckles sheet
+with a pale blue one, and a bar sitting between two cells welds them into one
+frame — two Sonics, one sprite. Ristar's sheet separates its sections with
+white rules, and a rule welds a whole row into a single 900-pixel frame. The
+cutter keys out the three MS Paint marker colours by name, and ignores the
+pixels of any line running nearly the full width or height of the sheet.
+
+I tried being clever about this first: Mega Drive colours all sit on the
+hardware's palette grid, so anything off the grid should be an annotation.
+It reads beautifully and it's wrong — several sheets were saved through a
+palette that shifted the sprites off the grid too, and the rule quietly keyed
+out Mecha Sonic's jet flames.
 
 The pipeline, end to end:
 

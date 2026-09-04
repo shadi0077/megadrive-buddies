@@ -52,16 +52,23 @@ check("names are unique", Set(Personality.all.map(\.name)).count == ids.count)
 check("both Axels are distinguishable",
       Personality.axel.name != Personality.axel1.name,
       "\(Personality.axel.name) / \(Personality.axel1.name)")
-check("Max is the slow one",
+check("Max is the slowest thing here",
       Personality.all.allSatisfy { $0.id == "max" || $0.roaming.speed >= Personality.max.roaming.speed },
       "\(Personality.max.roaming.speed)")
-check("Skate is the quick one",
-      Personality.all.allSatisfy { $0.id == "skate" || $0.roaming.speed <= Personality.skate.roaming.speed })
+check("Sonic is the fastest thing here",
+      Personality.all.allSatisfy { $0.id == "sonic" || $0.roaming.speed <= Personality.sonic.roaming.speed },
+      "\(Personality.sonic.roaming.speed)")
+// The point of per-character roaming: the spread has to be wide enough to
+// read as different characters rather than one speed with noise on it.
+let paces = Personality.all.map(\.roaming.speed)
+check("the roster spans a real range of paces",
+      (paces.max() ?? 0) > (paces.min() ?? 0) * 3,
+      "\(paces.min() ?? 0)...\(paces.max() ?? 0)")
 for p in Personality.all {
     check("\(p.name): walks a sane distance at a sane pace",
           p.roaming.distance.lowerBound > 0
               && p.roaming.distance.upperBound <= 4000
-              && (60...400).contains(p.roaming.speed)
+              && (60...500).contains(p.roaming.speed)
               && p.beatRange.lowerBound > 0,
           "\(p.roaming.speed) pt/s, \(p.roaming.distance)")
 }
@@ -71,7 +78,12 @@ for p in Personality.all {
     guard let store = stores[p.id] else { continue }
     check("\(p.name): the sprite set has no mouth frames to sync",
           store.animations["talk"] == nil)
-    guard let bank = SoundBank(set: p.soundSet, bundle: bundle) else {
+    // Only the characters whose game we have a sound rip from make a noise.
+    // The rest are silent by design, which the app has to cope with.
+    guard let set = p.soundSet else {
+        check("\(p.name): silent, and says so", true); continue
+    }
+    guard let bank = SoundBank(set: set, bundle: bundle) else {
         check("\(p.name): has a sound bank", false); continue
     }
     check("\(p.name): has a sound bank", true)
@@ -80,16 +92,26 @@ for p in Personality.all {
     }
 }
 
-print("\nsparring:")
+print("\nsquaring up:")
 // Two of them is the whole premise; one character can't square up with anyone.
 check("more than one of them ships", Personality.all.count > 1)
-let canFight = Personality.all.filter { p in
+// Half this cast came out of a beat-'em-up and half out of a platformer, so
+// not everybody has a punch. What everybody must have is *something* to do
+// when the other one swings, or an exchange is one character performing to a
+// statue: move() falls back to a character's own flourishes, so those have to
+// exist and have to be clips the sprite set really has.
+for p in Personality.all {
+    guard let store = stores[p.id] else { continue }
+    let usable = p.flourishes.filter { store.animation($0) != nil }
+    check("\(p.name): has something to do when squared up", !usable.isEmpty)
+}
+let fighters = Personality.all.filter { p in
     guard let store = stores[p.id] else { return false }
-    return ["punch", "kick", "jab", "attack", "highKick", "slam", "flip"]
+    return ["punch", "kick", "jab", "attack", "highKick", "slam"]
         .contains { store.animation($0) != nil }
 }
-check("everybody can throw or take a swing", canFight.count == Personality.all.count,
-      Set(ids).subtracting(canFight.map(\.id)).joined(separator: ", "))
+check("some of them can actually throw a punch", fighters.count >= 8,
+      "\(fighters.count)")
 
 print(failures == 0 ? "\nall checks passed" : "\n\(failures) FAILED")
 exit(failures == 0 ? 0 : 1)

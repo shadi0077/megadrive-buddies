@@ -10,9 +10,11 @@ import Foundation
 struct Personality {
     let id: String
 
-    /// Folder its sound effects come from. Shared between characters out of
-    /// the same game, since it's one game's rip.
-    let soundSet: String
+    /// Folder its sound effects come from, when there is one. Shared between
+    /// characters out of the same game, since it's one game's rip — and nil
+    /// for the characters whose games we have no sound from, who go about
+    /// their business silently.
+    let soundSet: String?
 
     /// Scale relative to the sprite canvas. Mega Drive sprites are small, and
     /// the rips aren't all at the same scale, so this is what makes them
@@ -63,6 +65,8 @@ struct Personality {
         .axel, .blaze, .max, .skate,          // Streets of Rage 2
         .adam, .axel1, .blaze1,               // Streets of Rage 1
         .galsia, .donovan, .eagle, .slum,     // enemies
+        .sonic, .tails, .knuckles, .robotnik, .mecha, .sonic3d,   // Sonic games
+        .ristar, .terry,                      // Ristar, Fatal Fury 2
     ]
 
     static let all: [Personality] = {

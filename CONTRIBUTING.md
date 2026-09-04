@@ -47,7 +47,11 @@ in a `Personality` that the sprite set doesn't have.
 punch, knocked down then up — owns its character across intro, loop and outro.
 Drop the callback and the character is stranded mid-bit forever. Every such
 sequence carries a generation token, and `Brain.tick` has a 60-second backstop
-because this has genuinely happened twice.
+because this has genuinely happened three times. The third was a looping clip
+used as a flourish: `Animator.play` only calls back for a clip that finishes,
+so Sonic performed his run cycle and stood there running for a minute. Play
+clips through `Brain.playOnce`, never `animator.play`, unless you are handling
+the loop yourself.
 
 **The sheet is not as regular as it looks.** Captions land inside frames,
 colour swatches sit among the sprites, one column can hold two stacked sprites,
@@ -68,9 +72,12 @@ ranges, and read the traps listed in the README.
 6. Give them a menu-bar frame in `AppDelegate.statusIcon()` if their sheet has
    portrait art — it reads much better at 18pt than an action frame.
 
-There's a Streets of Rage 3 Axel already extracted in
-`app/Resources/characters/axel3` (177 frames) with nothing authored for him, if
-you want a ready-made starting point.
+Three sheets are already cut with nothing authored for them, if you want a
+ready-made starting point: `axel3` (Streets of Rage 3 Axel, 177 frames),
+`spinball` (Sonic Spinball — a different Sonic, though he looks much like the
+Sonic 2 one at desktop size), and `headdy` (Dynamite Headdy, whose sheet is
+split into separate head and body pieces that would have to be composited, so
+he needs more than a range in `catalog.py`).
 
 ## Adding an app
 

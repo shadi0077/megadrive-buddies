@@ -2,12 +2,32 @@
   "id": "megadrive-buddies",
   "name": "MegaDrive Buddies",
   "bundleID": "com.shadi.megadrivebuddies",
-  "tagline": "Streets of Rage brawlers who pace your desktop and square up when they meet.",
-  "cast": ["axel", "blaze", "max", "skate",
-           "adam", "axel1", "blaze1",
-           "galsia", "donovan", "eagle", "slum"],
-  "sharedResources": ["_sor2"],
+  "tagline": "Mega Drive characters who pace your desktop and square up when they meet.",
+  "cast": [
+    "axel",
+    "blaze",
+    "max",
+    "skate",
+    "adam",
+    "axel1",
+    "blaze1",
+    "galsia",
+    "donovan",
+    "eagle",
+    "slum",
+    "sonic",
+    "tails",
+    "knuckles",
+    "robotnik",
+    "mecha",
+    "ristar",
+    "terry",
+    "sonic3d"
+  ],
+  "sharedResources": [
+    "_sor2"
+  ],
   "iconCharacter": "axel",
   "iconFrame": 157,
-  "credit": "Sprites from Streets of Rage / Bare Knuckle, Sega and Ancient."
+  "credit": "Sprites from Streets of Rage, Sonic the Hedgehog, Ristar and Fatal Fury 2 \u2014 Sega, Ancient and SNK."
 }

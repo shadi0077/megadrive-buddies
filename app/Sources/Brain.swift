@@ -96,7 +96,7 @@ final class Brain {
     init(personality: Personality, store: SpriteStore,
          animator: Animator, window: BuddyWindow) {
         self.personality = personality
-        self.sounds = SoundBank(set: personality.soundSet)
+        self.sounds = personality.soundSet.flatMap { SoundBank(set: $0) }
         self.store = store
         self.animator = animator
         self.window = window
@@ -362,14 +362,36 @@ final class Brain {
         sounds?.stop()
     }
 
+    /// Play one clip and hand back, whether or not the clip ever ends.
+    ///
+    /// `Animator.play` only calls back for a clip that finishes, and a looping
+    /// one never does. That matters because half a platformer character's
+    /// repertoire loops — a run cycle, Tails' flight — and performing one left
+    /// the character stranded in `.busy` until the 60-second backstop caught
+    /// it. Sonic did exactly that, standing on the spot running for a minute.
+    /// So a looping clip is held for a moment and then handed back, which
+    /// reads as a beat of running on the spot rather than a lock-up.
+    private func playOnce(_ name: String, token: Int, then: @escaping () -> Void) {
+        animator.play(name) { [weak self] in
+            guard let self, self.current(token) else { return }
+            then()
+        }
+        guard store.animation(name)?.loop == true else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + Double.random(in: 1.1...2.0)) {
+            [weak self] in
+            guard let self, self.current(token) else { return }
+            then()
+        }
+    }
+
     private func perform(_ name: String, then: (() -> Void)? = nil) {
         guard mode == .idle else { return }
         plog("perform \(name)")
         makeNoise(noise(for: name))
         mode = .busy
         let token = bump()
-        animator.play(name) { [weak self] in
-            guard let self, self.current(token) else { return }
+        playOnce(name, token: token) { [weak self] in
+            guard let self else { return }
             self.mode = .idle
             self.animator.play("rest")
             then?()
@@ -382,8 +404,8 @@ final class Brain {
         plog("bit \(bit.intro)")
         let token = bump()
         makeNoise(noise(for: bit.intro))
-        animator.play(bit.intro) { [weak self] in
-            guard let self, self.current(token) else { return }
+        playOnce(bit.intro, token: token) { [weak self] in
+            guard let self else { return }
             let finishBit = {
                 guard self.current(token) else { return }
                 guard let outro = bit.outro else { self.goIdle(); return }
@@ -538,8 +560,8 @@ final class Brain {
         let token = bump()
         mode = .busy
         makeNoise(noise(for: clip))
-        animator.play(clip) { [weak self] in
-            guard let self, self.current(token) else { completion(); return }
+        playOnce(clip, token: token) { [weak self] in
+            guard let self else { completion(); return }
             self.mode = .idle
             self.animator.play("rest")
             completion()

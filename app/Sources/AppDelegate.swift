@@ -111,7 +111,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func statusIcon() -> NSImage? {
         let heroes = [("axel", 157), ("blaze", 181), ("max", 145), ("skate", 88),
                       ("adam", 0), ("axel1", 0), ("blaze1", 0),
-                      ("galsia", 0), ("donovan", 0), ("eagle", 0), ("slum", 12)]
+                      ("galsia", 0), ("donovan", 0), ("eagle", 0), ("slum", 12),
+                      ("sonic", 26), ("tails", 145), ("knuckles", 18),
+                      ("robotnik", 129), ("mecha", 12), ("ristar", 0),
+                      ("terry", 0), ("sonic3d", 9)]
         for (id, frame) in heroes where cast.buddy(id)?.isVisible == true {
             if let icon = cast.buddy(id)?.store.menuBarIcon(frame: frame, height: 18) {
                 return icon

@@ -177,10 +177,108 @@ SLUM = {
     "depart":    (rng(12, 15), 10, False),
 }
 
+
+# --------------------------------------------------------------------------
+# The Sonic cast, Ristar and Terry Bogard.
+#
+# These sheets are laid out by section rather than by band, with labels and
+# palette strips among the sprites, so the ranges below were read off
+# tools/index.py by eye. Anything not listed here is a caption, a colour
+# swatch, or a pose with a sheet annotation sitting in it.
+# --------------------------------------------------------------------------
+
+SONIC = {                                  # Sonic the Hedgehog 2
+    "rest":      ([26, 26, 26, 27], 3, True),      # idle, with a blink
+    "walk":      (rng(41, 48), 12, True),
+    "run":       (rng(49, 52), 16, True),
+    "skid":      (rng(53, 56), 12, False),
+    "bored":     (rng(28, 31), 5, False),
+    "sit":       ([32, 33, 34], 5, False),         # very bored, sits down
+    "lookUp":    ([35, 36, 37], 5, False),
+    "crouch":    ([38, 39], 7, False),
+    "arrive":    (rng(49, 52), 16, False),
+    "depart":    (rng(49, 52), 16, False),
+}
+
+TAILS = {                                  # Sonic & Knuckles, lock-on
+    "rest":      ([145, 146], 3, True),
+    "walk":      (rng(110, 117), 12, True),
+    "fly":       (rng(119, 123), 10, True),
+    "roll":      (rng(154, 158), 12, False),
+    "arrive":    (rng(119, 123), 10, False),
+    "depart":    (rng(110, 117), 12, False),
+}
+
+KNUCKLES = {                               # Sonic & Knuckles
+    "rest":      (rng(18, 22), 4, True),
+    "bored":     (rng(23, 26), 5, False),
+    "walk":      (rng(43, 50), 12, True),
+    "run":       (rng(51, 54), 15, True),
+    "roll":      (rng(55, 59), 13, False),
+    "arrive":    (rng(51, 54), 15, False),
+    "depart":    (rng(51, 54), 15, False),
+}
+
+ROBOTNIK = {                               # Sonic the Hedgehog, out of the pod
+    "rest":      ([129, 130], 3, True),
+    "laugh":     ([131, 132], 5, False),
+    "hit":       ([133, 134], 6, False),
+    "walk":      ([136, 137, 139], 8, True),       # 138 has a panel behind it
+    "crouch":    ([140, 140], 4, False),
+    "cheer":     ([141, 142, 143], 5, False),
+    "arrive":    ([136, 137, 139], 8, False),
+    "depart":    ([136, 137, 139], 8, False),
+}
+
+MECHA = {                                  # Mecha Sonic, Sonic the Hedgehog 2
+    "rest":      (rng(11, 14), 6, True),
+    "walk":      (rng(11, 14), 8, True),           # he hovers rather than walks
+    "spin":      (rng(20, 22), 12, False),
+    "dash":      ([27, 28, 29], 10, False),
+    "arrive":    ([9, 10], 7, False),
+    "depart":    ([10, 9], 7, False),
+}
+
+RISTAR = {                                 # Ristar
+    "rest":      (rng(0, 4), 5, True),
+    "walk":      (rng(47, 54), 12, True),
+    "jump":      (rng(55, 59), 10, False),
+    "roll":      (rng(61, 64), 12, False),
+    "cheer":     (rng(211, 214), 8, False),
+    "celebrate": (rng(221, 223), 7, False),
+    "arrive":    (rng(55, 59), 10, False),
+    "depart":    (rng(47, 54), 12, False),
+}
+
+SONIC3D = {                                # Sonic 3D Blast
+    # The sheet ships each sprite's drop shadow as its own frame, so the
+    # numbering runs sprite, sprite, ..., shadow, shadow. Only the sprites.
+    "rest":      (rng(9, 15), 6, True),
+    "walk":      (rng(49, 56), 12, True),
+    "arrive":    (rng(49, 56), 12, False),
+    "depart":    (rng(49, 56), 12, False),
+}
+
+TERRY = {                                  # Fatal Fury 2
+    "rest":      (rng(0, 4), 6, True),
+    "walk":      (rng(5, 7), 8, True),
+    "crouch":    (rng(8, 10), 8, False),
+    "jump":      (rng(11, 14), 10, False),
+    "knockdown": ([15, 16], 7, False),
+    "punch":     (rng(22, 26), 13, False),
+    "kick":      (rng(27, 30), 13, False),
+    "highKick":  ([31, 32], 10, False),
+    "arrive":    (rng(5, 7), 8, False),
+    "depart":    (rng(5, 7), 8, False),
+}
+
 for name, clips in [("axel", AXEL), ("blaze", BLAZE), ("max", MAX), ("skate", SKATE),
                     ("adam", ADAM), ("axel1", AXEL1), ("blaze1", BLAZE1),
                     ("galsia", GALSIA), ("donovan", DONOVAN), ("eagle", EAGLE),
-                    ("slum", SLUM)]:
+                    ("slum", SLUM),
+                    ("sonic", SONIC), ("tails", TAILS), ("knuckles", KNUCKLES),
+                    ("robotnik", ROBOTNIK), ("mecha", MECHA), ("ristar", RISTAR),
+                    ("terry", TERRY), ("sonic3d", SONIC3D)]:
     if not os.path.isdir(f"app/Resources/characters/{name}/frames"):
         print(f"{name}: no sprites imported, skipping")
         continue

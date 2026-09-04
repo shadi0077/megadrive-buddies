@@ -8,7 +8,8 @@ mkdir -p build shots
 APPKIT="-framework AppKit -framework ServiceManagement -framework AVFoundation"
 CORE="app/Sources/SpriteStore.swift app/Sources/BuddyView.swift"
 CAST="app/Sources/Personality.swift app/Sources/AxelPersonality.swift
-      app/Sources/SoRPersonalities.swift app/Sources/RecentPicks.swift"
+      app/Sources/SoRPersonalities.swift app/Sources/SonicPersonalities.swift
+      app/Sources/RecentPicks.swift"
 ENGINE="app/Sources/Animator.swift app/Sources/BuddyWindow.swift
         app/Sources/SoundBank.swift app/Sources/Brain.swift"
 
@@ -58,7 +59,7 @@ echo
 echo "== menu-bar icon =="
 swiftc -O -framework AppKit $CORE app/Sources/Product.swift $CAST \
   tools/icontest/main.swift -o build/icontest
-BUDDY_APP="$APP" ./build/icontest
+for who in axel sonic robotnik terry; do BUDDY_APP="$APP" ./build/icontest $who; done
 
 echo
 echo "== headless renders =="

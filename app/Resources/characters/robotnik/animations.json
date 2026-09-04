@@ -1,0 +1,112 @@
+{
+ "animations": {
+  "rest": {
+   "steps": [
+    {
+     "f": 129
+    },
+    {
+     "f": 130
+    }
+   ],
+   "fps": 3,
+   "loop": true
+  },
+  "laugh": {
+   "steps": [
+    {
+     "f": 131
+    },
+    {
+     "f": 132
+    }
+   ],
+   "fps": 5,
+   "loop": false
+  },
+  "hit": {
+   "steps": [
+    {
+     "f": 133
+    },
+    {
+     "f": 134
+    }
+   ],
+   "fps": 6,
+   "loop": false
+  },
+  "walk": {
+   "steps": [
+    {
+     "f": 136
+    },
+    {
+     "f": 137
+    },
+    {
+     "f": 139
+    }
+   ],
+   "fps": 8,
+   "loop": true
+  },
+  "crouch": {
+   "steps": [
+    {
+     "f": 140
+    },
+    {
+     "f": 140
+    }
+   ],
+   "fps": 4,
+   "loop": false
+  },
+  "cheer": {
+   "steps": [
+    {
+     "f": 141
+    },
+    {
+     "f": 142
+    },
+    {
+     "f": 143
+    }
+   ],
+   "fps": 5,
+   "loop": false
+  },
+  "arrive": {
+   "steps": [
+    {
+     "f": 136
+    },
+    {
+     "f": 137
+    },
+    {
+     "f": 139
+    }
+   ],
+   "fps": 8,
+   "loop": false
+  },
+  "depart": {
+   "steps": [
+    {
+     "f": 136
+    },
+    {
+     "f": 137
+    },
+    {
+     "f": 139
+    }
+   ],
+   "fps": 8,
+   "loop": false
+  }
+ }
+}

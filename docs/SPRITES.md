@@ -5,8 +5,15 @@ covered by this project's MIT licence**.
 
 Axel, Blaze, Max, Skate, Adam, Galsia, Donovan, Eagle and Slum, and the sound
 effects that go with them, are from **Streets of Rage** (*Bare Knuckle* in
-Japan) and belong to Sega, with music and sound by Yuzo Koshiro and Ancient. The
-sheets are community rips, of the kind archived on The Spriters Resource.
+Japan) and belong to Sega, with music and sound by Yuzo Koshiro and Ancient.
+
+Sonic, Tails, Knuckles, Dr. Robotnik and Mecha Sonic are from the **Sonic the
+Hedgehog** games and **Ristar** is from *Ristar*, both Sega. **Terry Bogard** is
+from *Fatal Fury 2* and belongs to SNK; the Mega Drive conversion was published
+by Takara.
+
+The sheets are community rips, of the kind archived on The Spriters Resource,
+and the rippers are credited on the sheets themselves.
 
 They are included here so the app runs straight from a clone, but no rights to
 any of it are granted with it, and none of it is mine to license.

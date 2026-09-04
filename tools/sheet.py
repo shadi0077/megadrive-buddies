@@ -4,7 +4,14 @@ A rip is a single sheet with frames laid out in irregular rows, so it needs
 segmenting: find bands of content, then columns within each band, then split
 each column at its own vertical gaps.
 
-Usage: sheet.py <character> <sheet.png> [key_r,key_g,key_b | alpha] [y0:y1]
+Usage: sheet.py <character> <sheet.png> [keys | alpha | auto] [y0:y1]
+
+`keys` is one or more background colours, "r,g,b" separated by "+". The
+Spriters Resource sheets for the Sonic games use two — a page colour and a
+per-frame panel colour — and keying only one of them leaves every sprite
+welded to its box. "auto" takes the two most common colours in the image,
+which is right for those sheets and wrong for a sheet with a big flat
+sprite, so look at the index afterwards either way.
 
 Caveat worth knowing before authoring animations: a caption printed directly
 beside a sprite ends up inside that frame, because the column containing both
@@ -35,12 +42,71 @@ px = im.load()
 transparent = sum(1 for _ in range(0, W, 7) for y in range(0, H, 7)
                   if px[_, y][3] == 0)
 use_alpha = key_arg == "alpha" or transparent > (W // 7) * (H // 7) * 0.3
-key = None if use_alpha else tuple(int(v) for v in key_arg.split(","))
+
+counts = {}
+for p in im.getdata():
+    counts[p[:3]] = counts.get(p[:3], 0) + 1
+ranked = sorted(counts.items(), key=lambda kv: -kv[1])
+
+if use_alpha:
+    keys = set()
+elif key_arg == "auto":
+    # Two colours only when the second really is a background: a page and its
+    # frame panels are both enormous, a sprite colour never is.
+    keys = {ranked[0][0]}
+    if len(ranked) > 1 and ranked[1][1] > W * H * 0.12:
+        keys.add(ranked[1][0])
+else:
+    keys = {tuple(int(v) for v in part.split(",")) for part in key_arg.split("+")}
+
+# Sheets annotate themselves, and an annotation drawn between two cells welds
+# them into one frame — two Sonics in one sprite.
+#
+# These three are the MS Paint colours the rippers mark frames with ("place
+# between other frames"), and no Mega Drive sprite uses them: the hardware's
+# palette puts every channel on a multiple of 36 and none of these land there.
+#
+# Tried and rejected: treating *every* off-grid colour as annotation. It reads
+# well and it is wrong — several of these sheets were saved through a palette
+# that shifted the sprites off the grid too, and the rule quietly keyed out
+# Mecha Sonic's jet flames.
+for marker in [(34, 177, 76), (168, 230, 29), (153, 217, 234)]:
+    if counts.get(marker, 0) > 200:
+        keys.add(marker)
+
+# Rules: a line of one colour running nearly the full width or height of the
+# sheet is furniture. Ristar's sheet separates its sections with white rules,
+# and one rule welds a whole row of sprites into a single 900-pixel frame. The
+# colour can't be keyed out — those rules are the same white as his gloves — so
+# it is the *pixels* that get ignored.
+furniture = set()
+for y in range(H):
+    row = {}
+    for x in range(W):
+        c = px[x, y][:3]
+        if c not in keys:
+            row[c] = row.get(c, 0) + 1
+    if row:
+        colour, n = max(row.items(), key=lambda kv: kv[1])
+        if n > W * 0.7:
+            furniture.update((x, y) for x in range(W) if px[x, y][:3] == colour)
+for x in range(W):
+    col = {}
+    for y in range(H):
+        c = px[x, y][:3]
+        if c not in keys:
+            col[c] = col.get(c, 0) + 1
+    if col:
+        colour, n = max(col.items(), key=lambda kv: kv[1])
+        if n > H * 0.7:
+            furniture.update((x, y) for y in range(H) if px[x, y][:3] == colour)
 
 
 def is_background(x, y):
+    if (x, y) in furniture:
+        return True
     p = px[x, y]
-    return p[3] == 0 if key is None else p[:3] == key
+    return p[3] == 0 if not keys else p[:3] in keys
 
 # Bands: horizontal runs that contain any non-key pixel.
 bands = []
@@ -110,7 +176,7 @@ for i, (b, x0, y0, x1, y1) in enumerate(frames):
     cp = crop.load()
     for y in range(h):
         for x in range(w):
-            if key is not None and cp[x, y][:3] == key:
+            if cp[x, y][:3] in keys or (x0 + x, y0 + y) in furniture:
                 cp[x, y] = (0, 0, 0, 0)
     crop.save(f"{out}/frames/{i:04d}.png", optimize=True)
     manifest.append(dict(x=(cw - w) // 2, y=ch - h - 4, w=w, h=h))
@@ -123,7 +189,7 @@ json.dump(dict(bands=len(bands), frames=index), open(f"tools/out/{name}-sheet.js
 
 total = sum(os.path.getsize(f"{out}/frames/{f}") for f in os.listdir(f"{out}/frames"))
 print(f"{name}: {len(frames)} frames from {len(bands)} bands "
-      f"({'alpha' if key is None else 'key ' + str(key)}), "
+      f"({'alpha' if not keys else 'keys ' + str(sorted(keys))}), "
       f"canvas {cw}x{ch}, {total/1024:.0f} KB")
 for b in range(len(bands)):
     n = sum(1 for f in index if f["band"] == b)
