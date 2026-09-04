@@ -86,10 +86,16 @@ for p in Personality.all {
     guard let bank = SoundBank(set: set, bundle: bundle) else {
         check("\(p.name): has a sound bank", false); continue
     }
-    check("\(p.name): has a sound bank", true)
+    let kinds = SoundBank.Kind.allCases.filter { bank.has($0) }
+    check("\(p.name): has a sound bank (\(kinds.map(\.rawValue).joined(separator: ", ")))",
+          !kinds.isEmpty)
+    // A rip needn't cover all three kinds — Ristar's is his voice and nothing
+    // else — but every kind must still produce a noise, or a character goes
+    // quiet at exactly the moment one is called for.
     for kind in SoundBank.Kind.allCases {
-        check("\(p.name): has \(kind.rawValue) sounds", bank.has(kind))
+        check("\(p.name): \(kind.rawValue) finds a sound", bank.play(kind))
     }
+    bank.stop()
 }
 
 print("\nsquaring up:")

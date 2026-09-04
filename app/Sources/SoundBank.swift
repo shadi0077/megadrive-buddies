@@ -46,9 +46,18 @@ final class SoundBank {
     func has(_ kind: Kind) -> Bool { !(clips[kind] ?? []).isEmpty }
 
     /// Play one, avoiding whichever was played last so it doesn't repeat.
+    ///
+    /// A set needn't carry all three kinds. Ristar's rip is ten clips of his
+    /// voice and nothing else, so there is no thud to play when he takes a
+    /// knock — and staying silent at the one moment a noise is called for
+    /// reads as a bug. Falls back to whatever the set does have.
     @discardableResult
     func play(_ kind: Kind) -> Bool {
-        guard isEnabled, let pool = clips[kind], !pool.isEmpty else { return false }
+        guard isEnabled else { return false }
+        let wanted = clips[kind]?.isEmpty == false
+            ? kind
+            : Kind.allCases.first { !(clips[$0] ?? []).isEmpty }
+        guard let kind = wanted, let pool = clips[kind], !pool.isEmpty else { return false }
         var index = Int.random(in: 0..<pool.count)
         if pool.count > 1, index == recent[kind] {
             index = (index + 1) % pool.count

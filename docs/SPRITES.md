@@ -15,6 +15,11 @@ by Takara.
 The sheets are community rips, of the kind archived on The Spriters Resource,
 and the rippers are credited on the sheets themselves.
 
+The sound effects are Sega's too — from Streets of Rage 2, Sonic 1, Sonic 2,
+Sonic 3 & Knuckles, Sonic 3D Blast and Ristar. The Sonic and Ristar sets come
+from Mr Lange's sound-test rips, which ask for credit rather than require it;
+this is that credit.
+
 They are included here so the app runs straight from a clone, but no rights to
 any of it are granted with it, and none of it is mine to license.
 

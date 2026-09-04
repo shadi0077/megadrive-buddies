@@ -44,24 +44,28 @@ extension Personality {
                                   flourishes: ["walk", "skid", "bored", "lookUp",
                                                "crouch"],
                                   bits: [moment("sit"), moment("bored"),
-                                         moment("skid")])
+                                         moment("skid")],
+                                  soundSet: "_sonic2")
 
     static let tails = platformer("tails", scale: 2.6, beats: 7...16, speed: 260,
                                   distance: 700...2400, restlessness: 2.8,
                                   flourishes: ["fly", "roll", "walk"],
                                   bits: [moment("fly"), moment("roll")],
+                                  soundSet: "_sonic3k",
                                   title: "Tails")
 
     static let knuckles = platformer("knuckles", scale: 2.4, beats: 8...18, speed: 240,
                                      distance: 600...2000, restlessness: 2.2,
                                      flourishes: ["run", "roll", "bored"],
-                                     bits: [moment("bored"), moment("roll")])
+                                     bits: [moment("bored"), moment("roll")],
+                                     soundSet: "_sonic3k")
 
     /// He does not run anywhere quickly, and he laughs at his own jokes.
     static let robotnik = platformer("robotnik", scale: 1.9, beats: 10...22, speed: 120,
                                      distance: 300...1100, restlessness: 1.2,
                                      flourishes: ["laugh", "cheer", "crouch", "hit"],
                                      bits: [moment("laugh"), moment("cheer")],
+                                     soundSet: "_sonic1",
                                      title: "Dr. Robotnik")
 
     /// Hovers on his jets, so the idle doubles as the travel clip — the same
@@ -70,13 +74,15 @@ extension Personality {
                                   distance: 600...2000, restlessness: 2.0,
                                   flourishes: ["spin", "dash"],
                                   bits: [moment("spin"), moment("dash")],
+                                  soundSet: "_sonic2",
                                   title: "Mecha Sonic")
 
     static let ristar = platformer("ristar", scale: 2.4, beats: 7...15, speed: 190,
                                    distance: 500...1800, restlessness: 2.4,
                                    flourishes: ["jump", "roll", "cheer", "celebrate"],
                                    bits: [moment("cheer"), moment("celebrate"),
-                                          moment("jump")])
+                                          moment("jump")],
+                                   soundSet: "_ristar")
 
     /// Pre-rendered rather than drawn, and it shows next to the others — which
     /// is the point of shipping him separately from the Sonic 2 sprite.
@@ -84,6 +90,7 @@ extension Personality {
                                     distance: 800...2800, restlessness: 3.0,
                                     flourishes: ["walk"],
                                     bits: [moment("walk")],
+                                    soundSet: "_sonic3k",
                                     title: "Sonic (3D Blast)")
 
     /// The one newcomer who can actually fight, so he keeps the sound set and

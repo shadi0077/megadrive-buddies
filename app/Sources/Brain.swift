@@ -112,12 +112,15 @@ final class Brain {
         return played
     }
 
-    /// The noise that suits a movement. Attacks land, efforts grunt.
+    /// The noise that suits a movement. Specials and arrivals announce
+    /// themselves, landings thud, and everything else is exertion — which for
+    /// the Sonic cast means the jumps and spin-dashes their rip is full of.
     private func noise(for clip: String) -> SoundBank.Kind {
         switch clip {
-        case "grandUpper", "flameArc", "uppercut", "celebrate", "arrive":
+        case "grandUpper", "flameArc", "uppercut", "celebrate", "arrive",
+             "cheer", "laugh":
             return .shout
-        case "knockdown", "getUp":
+        case "knockdown", "getUp", "hit":
             return .impact
         default:
             return .effort

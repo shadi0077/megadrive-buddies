@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.2
+
+- **Everybody makes a noise now.** Sound sets from Sonic 1, Sonic 2, Sonic 3 &
+  Knuckles (with the handful of sounds unique to 3D Blast folded in) and
+  Ristar's voice rip, on top of the Streets of Rage one. Sonic and Mecha Sonic
+  take Sonic 2's, Tails, Knuckles and the 3D Blast Sonic take Sonic 3's,
+  Robotnik takes Sonic 1's, and Ristar has his own voice.
+- None of the rips says what its sounds are — they're numbered by sound-test
+  index — so the Sonic sets are grouped by measuring the audio: unpitched
+  bursts are impacts, rising sweeps are effort, the bright tonal ones are
+  shouts.
+- Ristar's set has no impacts, because his rip is ten clips of his voice.
+  `SoundBank` falls back to whatever a set does have, and the tests now assert
+  that every kind produces a sound rather than that the bank merely exists.
+- Sounds ship as 22.05 kHz mono. At the rips' 44.1 kHz stereo they would have
+  been sixteen megabytes of a nineteen-megabyte app.
+
 ## 1.1
 
 - **Eight more characters, from four more games.** Sonic, Tails, Knuckles,

@@ -92,9 +92,9 @@ a { color: var(--accent); }
 <p>A desktop pet with nothing to sell you: <strong>no network access, no
 analytics, no bundled anything, no upsell.</strong> They are windows that draw a
 sprite. Quit them from the menu bar and they're gone.</p>
-<p>Nobody talks, either. The Streets of Rage cast grunt, thud and shout with
-the game's own sound effects; the rest go about it in silence, because that rip
-is the only sound we have. Every conversation here is physical.</p>
+<p>Nobody talks, either. They grunt, thud, shout, jump and collect rings, each
+with the sound effects out of their own game. Every conversation here is
+physical.</p>
 
 <div class="cards">
   <div class="card"><h4>They actually walk</h4><p>At their own pace over their own distances, the length of the screen. A heavy Max and a Skate on rollerblades stay recognisably different.</p></div>
@@ -172,12 +172,19 @@ afternoon doing <code>cheer</code>, a clip he hasn't got. Shared routines now go
 through a picker that drops what a character lacks, and the test suite fails on
 any clip named in a personality that the sprite set doesn't have.</p>
 
-<h3>Sound that fires and forgets</h3>
-<p>The rip names voice clips <code>V00</code>–<code>V52</code> and effects
-<code>00</code>–<code>49</code>, with no index of what any of them are. The
-grouping — specials shout, knockdowns thud, everything else grunts — is inferred
-from that naming plus duration. It's an inference, not a transcription, and it
-holds up because the categories are coarse.</p>
+<h3>Sound nobody labelled</h3>
+<p>Five rips and not one of them says what its sounds are. The Streets of Rage
+rip names voice clips <code>V00</code>–<code>V52</code> and effects
+<code>00</code>–<code>49</code>; the Sonic and Ristar rips are numbered by
+sound-test index, and deliberately so — "I did not name any of the sound files
+by concept", says the ripper's readme.</p>
+<p>So the Sonic sets are grouped by measuring the audio instead: a short burst
+with no pitch to it is an impact, a sweep that rises is effort — a jump, a
+spring, a spin-dash winding up — and the bright tonal ones left over are
+shouts, which is where ring collection lands. Ristar's rip is his voice and
+nothing else, so his set has no impacts at all, and the player falls back to
+what the set does have rather than going quiet at the one moment a noise is
+called for.</p>
 
 <footer>
   <p>MIT licensed — the code, at least. The characters belong to Sega; the MIT

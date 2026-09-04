@@ -1,0 +1,50 @@
+{
+ "effort": [
+  "effort00.wav",
+  "effort01.wav",
+  "effort02.wav",
+  "effort03.wav",
+  "effort04.wav",
+  "effort05.wav",
+  "effort06.wav",
+  "effort07.wav",
+  "effort08.wav",
+  "effort09.wav",
+  "effort10.wav",
+  "effort11.wav",
+  "effort12.wav",
+  "effort13.wav"
+ ],
+ "impact": [
+  "impact00.wav",
+  "impact01.wav",
+  "impact02.wav",
+  "impact03.wav",
+  "impact04.wav",
+  "impact05.wav",
+  "impact06.wav",
+  "impact07.wav",
+  "impact08.wav",
+  "impact09.wav",
+  "impact10.wav",
+  "impact11.wav",
+  "impact12.wav",
+  "impact13.wav"
+ ],
+ "shout": [
+  "shout00.wav",
+  "shout01.wav",
+  "shout02.wav",
+  "shout03.wav",
+  "shout04.wav",
+  "shout05.wav",
+  "shout06.wav",
+  "shout07.wav",
+  "shout08.wav",
+  "shout09.wav",
+  "shout10.wav",
+  "shout11.wav",
+  "shout12.wav",
+  "shout13.wav"
+ ]
+}

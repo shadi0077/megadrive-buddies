@@ -8,9 +8,8 @@ Nineteen Mega Drive characters who live on your macOS desktop. They pace the
 length of the screen at their own speeds, do the things their games had them
 do, and when two of them end up near each other they square up and have a go.
 
-Nobody talks. The Streets of Rage cast grunt, thud and shout with the game's
-own sound effects; the rest go about it in silence. Every conversation here is
-physical.
+Nobody talks. They grunt, thud, shout, jump and collect rings, each with the
+sound effects out of their own game. Every conversation here is physical.
 
 **No network access, no analytics, no bundled anything, no upsell.** They are
 windows that draw a sprite. Quit them from the menu bar and they're gone.
@@ -123,11 +122,34 @@ turns to watch.
 a fitting noise, chosen by clip name: specials and celebrations shout,
 knockdowns thud, everything else grunts.
 
-Only the Streets of Rage cast and Terry have a sound set — that rip is the one
-we have. The Sonic characters and Ristar are silent, which the app treats as an
-ordinary state rather than a missing feature: `soundSet` is optional, a
-character without one simply makes no noise, and `test.sh` asserts that each of
-them declares it rather than failing to find a bank.
+Five rips, five sound sets, and none of them says what any of its sounds
+*are*. The Streets of Rage rip names voice clips `V00`–`V52` and effects
+`00`–`49`; the Sonic and Ristar rips are numbered by sound-test index, and the
+ripper says why in his readme — "I did not name any of the sound files by
+concept (jump, ring, spindash. etc), just by their numbers".
+
+So the grouping is inferred, and from different evidence for each. The Streets
+of Rage set goes by that naming convention plus duration. The Sonic sets are
+grouped by measuring the audio: a short burst with no pitch to it is an impact,
+a sweep that rises is effort — a jump, a spring, a spin-dash winding up — and
+the bright tonal ones left over are shouts, which is where ring collection
+lands, exactly where you want it. Measured, the groups come out as distinct as
+the labels claim:
+
+| | impact | effort | shout |
+|---|---|---|---|
+| Sonic 2 | 0.45 s, ~610 Hz | 0.61 s, ~4330 Hz | 0.69 s, ~2410 Hz |
+| Sonic 3 & Knuckles | 0.63 s, ~370 Hz | 0.66 s, ~2680 Hz | 1.15 s, ~1650 Hz |
+
+Ristar's rip is his voice and only his voice, so measuring it is pointless —
+those go by length instead, and his set has no impacts at all. `SoundBank`
+falls back to whatever a set does have rather than going quiet at the one
+moment a noise is called for, and `test.sh` asserts every kind finds a sound
+for every character rather than merely that the bank exists.
+
+The rips are 44.1 kHz stereo, which across three sets is sixteen megabytes of
+a nineteen-megabyte app. They ship as 22.05 kHz mono: the Mega Drive's FM chip
+barely reaches 11 kHz, and none of it was stereo in any meaningful sense.
 
 The rip names voice clips `V00`–`V52` and effects `00`–`49`, with no index of
 what each one is — nobody wrote down which grunt is which. The grouping is by
@@ -302,7 +324,7 @@ python3 tools/catalog.py                   # after authoring the ranges
 | `sheet.py` | Cuts a sheet into trimmed, anchored frames |
 | `index.py` | Numbered contact sheet — the only way to author ranges honestly |
 | `catalog.py` | The hand-authored animation catalogue: clip ranges, fps, loop flags |
-| `sounds.py` | Packs the game's sound rip into the shared sound set |
+| `sounds.py` | Groups a sound rip into effort/impact/shout and packs it |
 | `icon.py` | Builds the app icon from a hero frame |
 | `lineup.py` | The cast picture at the top of this README |
 

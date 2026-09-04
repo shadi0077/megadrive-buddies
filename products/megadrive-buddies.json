@@ -25,7 +25,11 @@
     "sonic3d"
   ],
   "sharedResources": [
-    "_sor2"
+    "_sor2",
+    "_sonic1",
+    "_sonic2",
+    "_sonic3k",
+    "_ristar"
   ],
   "iconCharacter": "axel",
   "iconFrame": 157,
