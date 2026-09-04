@@ -20,8 +20,8 @@ First release.
 - macOS 11 and later on Apple Silicon.
 
 Split out of [desktop-buddies](https://github.com/shadi0077/desktop-buddies),
-which is now just the parrot and the gorilla. The engine started there; the
-speech half of it is gone, because nobody here has anything to say.
+which keeps the characters who talk. The engine started there; the speech half
+of it is gone from this repo, because nobody here has anything to say.
 
 ### Fixed on the way out
 

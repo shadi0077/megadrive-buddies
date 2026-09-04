@@ -16,6 +16,12 @@ windows that draw a sprite. Quit them from the menu bar and they're gone.
 
 ![The cast, mid-walk](docs/img/megadrive-buddies.png)
 
+📖 **[shadi0077.github.io/megadrive-buddies](https://shadi0077.github.io/megadrive-buddies/)**
+
+Split out of **[Desktop Buddies](https://github.com/shadi0077/desktop-buddies)**,
+which is the same engine with the talking left in — nine Microsoft Agent
+characters who tell jokes, sing, and argue with each other.
+
 ---
 
 ## Build and run
