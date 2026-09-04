@@ -8,9 +8,15 @@ effects that go with them, are from **Streets of Rage** (*Bare Knuckle* in
 Japan) and belong to Sega, with music and sound by Yuzo Koshiro and Ancient.
 
 Sonic, Tails, Knuckles, Dr. Robotnik and Mecha Sonic are from the **Sonic the
-Hedgehog** games and **Ristar** is from *Ristar*, both Sega. **Terry Bogard** is
-from *Fatal Fury 2* and belongs to SNK; the Mega Drive conversion was published
-by Takara.
+Hedgehog** games and **Ristar** is from *Ristar*, both Sega. **ToeJam and Earl**
+are Sega's too, and so is **Michael Jackson's Moonwalker** — the likeness there
+is the estate's business, not Sega's.
+
+The rest belong to other publishers: **Earthworm Jim** to Interplay and
+Shiny, **Pulseman** to Sega and Game Freak, **Sparkster** to Konami,
+**Donald Duck** to Disney and Sega, **Terry Bogard** and **Robert Garcia** to
+SNK, **Ryu** to Capcom, **Joe Musashi** to Sega, **Gambit** to Marvel and
+Sega, and **Sketch Turner** to Sega.
 
 The sheets are community rips, of the kind archived on The Spriters Resource,
 and the rippers are credited on the sheets themselves.

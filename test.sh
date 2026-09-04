@@ -9,7 +9,7 @@ APPKIT="-framework AppKit -framework ServiceManagement -framework AVFoundation"
 CORE="app/Sources/SpriteStore.swift app/Sources/BuddyView.swift"
 CAST="app/Sources/Personality.swift app/Sources/AxelPersonality.swift
       app/Sources/SoRPersonalities.swift app/Sources/SonicPersonalities.swift
-      app/Sources/RecentPicks.swift"
+      app/Sources/ArcadePersonalities.swift app/Sources/RecentPicks.swift"
 ENGINE="app/Sources/Animator.swift app/Sources/BuddyWindow.swift
         app/Sources/SoundBank.swift app/Sources/Brain.swift"
 

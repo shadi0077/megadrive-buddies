@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
 ![Platform](https://img.shields.io/badge/macOS-11%2B%20(Apple%20Silicon)-lightgrey)
 
-Nineteen Mega Drive characters who live on your macOS desktop. They pace the
+Thirty-one Mega Drive characters who live on your macOS desktop. They pace the
 length of the screen at their own speeds, do the things their games had them
 do, and when two of them end up near each other they square up and have a go.
 
@@ -53,12 +53,15 @@ seconds and seven megabytes.
 | **Streets of Rage enemies** | Galsia, Donovan, Eagle, Slum |
 | **Sonic the Hedgehog** | Sonic, Tails, Knuckles, Dr. Robotnik, Mecha Sonic, Sonic (3D Blast) |
 | **Ristar** | Ristar |
-| **Fatal Fury 2** | Terry Bogard |
+| **Platformers** | Earthworm Jim, Pulseman, Sparkster, Donald Duck |
+| **ToeJam & Earl** | ToeJam, Earl |
+| **Fighters** | Terry Bogard, Ryu, Robert Garcia, Joe Musashi, Gambit, Sketch Turner |
+| **Moonwalker** | Michael Jackson |
 
 Both Streets of Rage games have an Axel and a Blaze, seven years apart, so the
 older pair carry the year in the menu; the 3D Blast Sonic is pre-rendered
 rather than drawn and looks it, which is why he ships alongside the Sonic 2
-one rather than instead of him. Have one of them out, or all nineteen.
+one rather than instead of him. Have one of them out, or all thirty-one.
 
 They're told apart by how they move rather than by what they say, because there
 is nothing to say:
@@ -66,11 +69,13 @@ is nothing to say:
 | | distance | speed | beat | restlessness |
 |---|---|---|---|---|
 | Sonic | 1000–3600 | 420 pt/s | 5–12 s | 3.6 |
+| Pulseman | 800–2600 | 300 pt/s | 7–15 s | 2.8 |
 | Skate | 900–3000 | 300 pt/s | 5–11 s | 3.4 |
 | Blaze | 600–2200 | 190 pt/s | 6–14 s | 2.6 |
 | Axel | 600–2200 | 165 pt/s | 7–16 s | 2.6 |
 | Max | 500–1600 | 120 pt/s | 11–24 s | 1.6 |
 | Dr. Robotnik | 300–1100 | 120 pt/s | 10–22 s | 1.2 |
+| Earl | 300–1200 | 110 pt/s | 12–26 s | 1.1 |
 
 Sonic crosses the whole screen and travels on his run cycle, because at 420
 points per second a walk cycle reads as a moonwalk. Max is a slow, heavy man
@@ -147,9 +152,14 @@ falls back to whatever a set does have rather than going quiet at the one
 moment a noise is called for, and `test.sh` asserts every kind finds a sound
 for every character rather than merely that the bank exists.
 
-The rips are 44.1 kHz stereo, which across three sets is sixteen megabytes of
-a nineteen-megabyte app. They ship as 22.05 kHz mono: the Mega Drive's FM chip
+The rips are 44.1 kHz stereo, which across three sets would have been sixteen
+megabytes on its own. They ship as 22.05 kHz mono: the Mega Drive's FM chip
 barely reaches 11 kHz, and none of it was stereo in any meaningful sense.
+
+The characters from games we have no sound rip for stay silent. Borrowing
+another game's effects for them would be worse than saying nothing — but the
+fighters share the Streets of Rage set, on the grounds that a grunt suits a man
+throwing a punch whichever game he came out of.
 
 The rip names voice clips `V00`–`V52` and effects `00`–`49`, with no index of
 what each one is — nobody wrote down which grunt is which. The grouping is by

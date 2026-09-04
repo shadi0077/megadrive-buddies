@@ -52,12 +52,17 @@ check("names are unique", Set(Personality.all.map(\.name)).count == ids.count)
 check("both Axels are distinguishable",
       Personality.axel.name != Personality.axel1.name,
       "\(Personality.axel.name) / \(Personality.axel1.name)")
-check("Max is the slowest thing here",
-      Personality.all.allSatisfy { $0.id == "max" || $0.roaming.speed >= Personality.max.roaming.speed },
-      "\(Personality.max.roaming.speed)")
 check("Sonic is the fastest thing here",
       Personality.all.allSatisfy { $0.id == "sonic" || $0.roaming.speed <= Personality.sonic.roaming.speed },
       "\(Personality.sonic.roaming.speed)")
+// Pace is characterisation, so the pairs that are *about* pace have to hold:
+// a lumbering Max against a teenager on rollerblades, and Earl, whose entire
+// character is that he does not hurry.
+check("Max is slower than Skate",
+      Personality.max.roaming.speed < Personality.skate.roaming.speed)
+check("Earl does not hurry",
+      Personality.earl.roaming.speed < Personality.toejam.roaming.speed
+          && Personality.earl.beatRange.lowerBound > Personality.toejam.beatRange.lowerBound)
 // The point of per-character roaming: the spread has to be wide enough to
 // read as different characters rather than one speed with noise on it.
 let paces = Personality.all.map(\.roaming.speed)

@@ -72,12 +72,19 @@ ranges, and read the traps listed in the README.
 6. Give them a menu-bar frame in `AppDelegate.statusIcon()` if their sheet has
    portrait art — it reads much better at 18pt than an action frame.
 
-Three sheets are already cut with nothing authored for them, if you want a
-ready-made starting point: `axel3` (Streets of Rage 3 Axel, 177 frames),
-`spinball` (Sonic Spinball — a different Sonic, though he looks much like the
-Sonic 2 one at desktop size), and `headdy` (Dynamite Headdy, whose sheet is
-split into separate head and body pieces that would have to be composited, so
-he needs more than a range in `catalog.py`).
+Several sheets are already cut with nothing authored for them, if you want a
+ready-made starting point:
+
+- `axel3` — Streets of Rage 3 Axel, 177 frames, straightforward.
+- `spinball` — Sonic Spinball. A different Sonic, though he looks much like the
+  Sonic 2 one at desktop size, which is why he isn't in the cast.
+- `headdy` — Dynamite Headdy, whose sheet is split into separate head and body
+  pieces meant to be composited. He needs more than a range in `catalog.py`.
+- The four Hyperstone Heist turtles are **not** cut, and are the interesting
+  problem: their sprites carry drop shadows that touch, so the cutter welds
+  neighbouring frames together and only ~85% of frames come out as single
+  sprites. Fixing that in `tools/sheet.py` would earn four characters at
+  once.
 
 ## Adding an app
 

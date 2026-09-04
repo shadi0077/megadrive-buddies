@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.3
+
+- **Twelve more characters, from twelve more games.** Earthworm Jim, Pulseman,
+  Sparkster, Donald Duck, ToeJam and Earl, Michael Jackson, Ryu, Robert Garcia,
+  Joe Musashi, Gambit and Sketch Turner. Thirty-one in all.
+- The fighters share the Streets of Rage sound set — a grunt suits a man
+  throwing a punch whichever game he came out of. The cartoon characters stay
+  silent rather than borrowing another game's effects.
+- Earl is now the slowest thing on the desktop, at 110 pt/s against Sonic's 420,
+  which is his entire character.
+- The sheet cutter learned to handle status-coloured frames: Rocket Knight's
+  sheet marks each frame as sprite area, reused or unused with a coloured
+  backing rectangle, and all three had to be keyed out or every sprite came out
+  glued to its box.
+
 ## 1.2
 
 - **Everybody makes a noise now.** Sound sets from Sonic 1, Sonic 2, Sonic 3 &

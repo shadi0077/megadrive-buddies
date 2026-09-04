@@ -27,6 +27,8 @@ final class SpriteStore {
     private let cache = NSCache<NSNumber, NSImage>()
 
     private(set) var animations: [String: AnimationDef] = [:]
+    /// The frame this character wears in the menu bar, from the catalogue.
+    private(set) var iconFrame: Int = 0
 
     let character: String
 
@@ -59,6 +61,7 @@ final class SpriteStore {
         // The working set for any one animation is small; this is generous.
         cache.totalCostLimit = 24 * 1024 * 1024
 
+        iconFrame = aRoot["icon"] as? Int ?? 0
         if let anims = aRoot["animations"] as? [String: Any] {
             for (name, raw) in anims {
                 guard let d = raw as? [String: Any],

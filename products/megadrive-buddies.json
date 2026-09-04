@@ -22,7 +22,19 @@
     "mecha",
     "ristar",
     "terry",
-    "sonic3d"
+    "sonic3d",
+    "jim",
+    "pulseman",
+    "toejam",
+    "earl",
+    "donald",
+    "moonwalker",
+    "sparkster",
+    "robert",
+    "ryu",
+    "musashi",
+    "gambit",
+    "sketch"
   ],
   "sharedResources": [
     "_sor2",
@@ -33,5 +45,5 @@
   ],
   "iconCharacter": "axel",
   "iconFrame": 157,
-  "credit": "Sprites from Streets of Rage, Sonic the Hedgehog, Ristar and Fatal Fury 2 \u2014 Sega, Ancient and SNK."
+  "credit": "Sprites from Streets of Rage, Sonic the Hedgehog, Ristar, Fatal Fury 2, Earthworm Jim, Pulseman, ToeJam & Earl, World of Illusion, Moonwalker, Rocket Knight Adventures, Art of Fighting, Street Fighter II, Shinobi III, X-Men 2 and Comix Zone \u2014 Sega, SNK, Capcom, Konami, Interplay and others."
 }

@@ -67,6 +67,9 @@ struct Personality {
         .galsia, .donovan, .eagle, .slum,     // enemies
         .sonic, .tails, .knuckles, .robotnik, .mecha, .sonic3d,   // Sonic games
         .ristar, .terry,                      // Ristar, Fatal Fury 2
+        .jim, .pulseman, .toejam, .earl,      // platformers
+        .donald, .moonwalker, .sparkster,
+        .robert, .ryu, .musashi, .gambit, .sketch,   // brawlers
     ]
 
     static let all: [Personality] = {

@@ -15,10 +15,25 @@ def rng(a, b):
     return list(range(a, b + 1))
 
 
+# The frame each character wears in the menu bar. Portraits where the sheet has
+# them — they read far better at 18pt than an action frame, which flattens into
+# a blob. This lives here rather than in the app because it is knowledge about
+# the sheet, and because the build has to know which frames to ship.
+ICONS = {
+    "axel": 157, "blaze": 181, "max": 145, "skate": 88, "slum": 12,
+    "sonic": 26, "tails": 145, "knuckles": 18, "robotnik": 129, "mecha": 12,
+    "sonic3d": 9, "jim": 27, "pulseman": 11, "toejam": 22, "earl": 54,
+    "robert": 0, "donald": 0, "moonwalker": 22, "gambit": 30, "sketch": 0,
+    "ryu": 0, "musashi": 0, "sparkster": 13, "ristar": 0, "terry": 0,
+}
+
+
 def build(name, clips):
     data = {"animations": {n: {"steps": [{"f": f} for f in steps],
                                "fps": fps, "loop": loop}
                            for n, (steps, fps, loop) in clips.items()}}
+    if name in ICONS:
+        data["icon"] = ICONS[name]
     out = f"app/Resources/characters/{name}"
     os.makedirs(out, exist_ok=True)
     json.dump(data, open(f"{out}/animations.json", "w"), indent=1)
@@ -272,13 +287,140 @@ TERRY = {                                  # Fatal Fury 2
     "depart":    (rng(5, 7), 8, False),
 }
 
+
+# --------------------------------------------------------------------------
+# The third batch: platformers, brawlers and one pop star.
+#
+# Same rule as the Sonic sheets — every range below was read off
+# tools/index.py by eye, and anything not listed is a caption, a palette
+# strip, or a frame with a sheet annotation sitting in it.
+# --------------------------------------------------------------------------
+
+JIM = {                                    # Earthworm Jim 2
+    "rest":      (rng(25, 31), 6, True),
+    "walk":      (rng(110, 121), 14, True),
+    "whip":      (rng(32, 39), 12, False),
+    "getUp":     (rng(60, 65), 10, False),
+    "arrive":    (rng(110, 121), 14, False),
+    "depart":    (rng(110, 121), 14, False),
+}
+
+PULSEMAN = {                               # Pulseman
+    "rest":      (rng(9, 13), 5, True),
+    "walk":      (rng(1, 3), 8, True),
+    "attack":    (rng(16, 19), 11, False),
+    "arrive":    (rng(1, 3), 8, False),
+    "depart":    (rng(1, 3), 8, False),
+}
+
+TOEJAM = {                                 # ToeJam & Earl: Panic on Funkotron
+    "rest":      (rng(20, 24), 5, True),
+    "walk":      (rng(52, 59), 11, True),
+    "dance":     (rng(62, 67), 9, False),
+    "dash":      (rng(78, 83), 13, False),
+    "arrive":    (rng(52, 59), 11, False),
+    "depart":    (rng(52, 59), 11, False),
+}
+
+EARL = {                                   # the other half of the double act
+    "rest":      ([54, 55], 3, True),
+    "walk":      (rng(56, 65), 11, True),
+    "arrive":    (rng(56, 65), 11, False),
+    "depart":    (rng(56, 65), 11, False),
+}
+
+ROBERT = {                                 # Art of Fighting
+    "rest":      (rng(0, 3), 6, True),
+    "walk":      (rng(4, 8), 9, True),
+    "crouch":    ([9, 10], 8, False),
+    "punch":     ([11, 12, 11], 12, False),
+    "kick":      ([16, 17], 10, False),
+    "jumpKick":  ([18, 19], 9, False),
+    "sweep":     ([21, 22], 9, False),
+    "arrive":    (rng(4, 8), 9, False),
+    "depart":    (rng(4, 8), 9, False),
+}
+
+DONALD = {                                 # World of Illusion
+    "rest":      (rng(0, 5), 6, True),
+    "walk":      (rng(6, 11), 10, True),
+    "run":       (rng(12, 17), 14, True),
+    "cape":      (rng(36, 39), 8, False),
+    "wave":      (rng(52, 55), 7, False),
+    "arrive":    (rng(6, 11), 10, False),
+    "depart":    (rng(6, 11), 10, False),
+}
+
+MOONWALKER = {                             # Michael Jackson's Moonwalker
+    "rest":      ([22, 23], 3, True),
+    "walk":      (rng(0, 11), 12, True),
+    "dance":     (rng(43, 47), 8, False),
+    "kick":      (rng(36, 41), 11, False),
+    "spin":      (rng(32, 35), 10, False),
+    "arrive":    (rng(0, 11), 12, False),
+    "depart":    (rng(0, 11), 12, False),
+}
+
+GAMBIT = {                                 # X-Men 2: Clone Wars
+    "rest":      (rng(28, 33), 6, True),
+    "walk":      (rng(37, 42), 11, True),
+    "crouch":    (rng(34, 36), 9, False),
+    "staff":     (rng(49, 51), 11, False),
+    "strike":    (rng(52, 54), 11, False),
+    "arrive":    (rng(37, 42), 11, False),
+    "depart":    (rng(37, 42), 11, False),
+}
+
+SKETCH = {                                 # Comix Zone
+    "rest":      (rng(0, 7), 6, True),
+    "walk":      (rng(36, 41), 10, True),
+    "run":       (rng(42, 47), 14, True),
+    "punch":     (rng(12, 15), 12, False),
+    "throw":     (rng(25, 28), 12, False),
+    "arrive":    (rng(36, 41), 10, False),
+    "depart":    (rng(36, 41), 10, False),
+}
+
+RYU = {                                    # Street Fighter II: SCE
+    "rest":      (rng(0, 3), 6, True),
+    "walk":      (rng(4, 7), 8, True),
+    "crouch":    ([8, 9], 8, False),
+    "jump":      (rng(10, 13), 10, False),
+    "punch":     ([19, 20, 19], 12, False),
+    "uppercut":  (rng(28, 31), 11, False),
+    "arrive":    (rng(4, 7), 8, False),
+    "depart":    (rng(4, 7), 8, False),
+}
+
+MUSASHI = {                                # Shinobi III
+    "rest":      (rng(0, 3), 5, True),
+    "walk":      (rng(10, 16), 12, True),
+    "throw":     (rng(7, 9), 12, False),
+    "slash":     (rng(17, 20), 14, False),
+    "strike":    (rng(21, 24), 13, False),
+    "arrive":    (rng(10, 16), 12, False),
+    "depart":    (rng(10, 16), 12, False),
+}
+
+SPARKSTER = {                              # Rocket Knight Adventures
+    "rest":      ([12, 13, 14], 5, True),
+    "walk":      (rng(28, 39), 12, True),
+    "arrive":    (rng(28, 39), 12, False),
+    "depart":    (rng(28, 39), 12, False),
+}
+
 for name, clips in [("axel", AXEL), ("blaze", BLAZE), ("max", MAX), ("skate", SKATE),
                     ("adam", ADAM), ("axel1", AXEL1), ("blaze1", BLAZE1),
                     ("galsia", GALSIA), ("donovan", DONOVAN), ("eagle", EAGLE),
                     ("slum", SLUM),
                     ("sonic", SONIC), ("tails", TAILS), ("knuckles", KNUCKLES),
                     ("robotnik", ROBOTNIK), ("mecha", MECHA), ("ristar", RISTAR),
-                    ("terry", TERRY), ("sonic3d", SONIC3D)]:
+                    ("terry", TERRY), ("sonic3d", SONIC3D),
+                    ("jim", JIM), ("pulseman", PULSEMAN), ("toejam", TOEJAM),
+                    ("earl", EARL), ("robert", ROBERT), ("donald", DONALD),
+                    ("moonwalker", MOONWALKER), ("gambit", GAMBIT),
+                    ("sketch", SKETCH), ("ryu", RYU), ("musashi", MUSASHI),
+                    ("sparkster", SPARKSTER)]:
     if not os.path.isdir(f"app/Resources/characters/{name}/frames"):
         print(f"{name}: no sprites imported, skipping")
         continue

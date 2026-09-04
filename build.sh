@@ -44,15 +44,48 @@ plist.update({
 plistlib.dump(plist, open(app / "Contents/Info.plist", "wb"))
 json.dump(manifest, open(app / "Contents/Resources/product.json", "w"))
 
-# Only this product's characters, plus whatever they share.
+# Only this product's characters, plus whatever they share — and within a
+# character, only the frames its animations actually play. The repository
+# keeps every frame a sheet gave up, because that is what the next animation
+# gets authored from; the app has no use for the other nine tenths of them.
+# Earthworm Jim's sheet alone is 1046 frames and he performs 25.
 dest = app / "Contents/Resources/characters"
 dest.mkdir(parents=True, exist_ok=True)
+kept = dropped = 0
 for who in manifest["cast"] + manifest.get("sharedResources", []):
     src = Path("app/Resources/characters") / who
-    if src.is_dir():
-        shutil.copytree(src, dest / who)
-    else:
+    if not src.is_dir():
         print(f"  warning: {who} has no resources")
+        continue
+    target = dest / who
+    target.mkdir(parents=True)
+    for item in src.iterdir():
+        if item.name == "frames":
+            continue
+        (shutil.copytree if item.is_dir() else shutil.copy)(item, target / item.name)
+
+    anims = src / "animations.json"
+    if not (src / "frames").is_dir():
+        continue
+    used = set()
+    if anims.exists():
+        catalogue = json.load(open(anims))
+        for clip in catalogue["animations"].values():
+            used.update(step["f"] for step in clip["steps"])
+        # The menu-bar frame is a portrait no animation plays, and dropping it
+        # leaves the status item blank — which on a menu-bar-only app means no
+        # way into the thing at all.
+        used.add(catalogue.get("icon", 0))
+    (target / "frames").mkdir()
+    for frame in sorted((src / "frames").iterdir()):
+        if frame.suffix != ".png":
+            continue
+        if int(frame.stem) in used:
+            shutil.copy(frame, target / "frames" / frame.name)
+            kept += 1
+        else:
+            dropped += 1
+print(f"  frames: {kept} shipped, {dropped} left in the repository")
 
 icon = Path(f"app/Resources/{manifest['id']}.icns")
 if icon.exists():
