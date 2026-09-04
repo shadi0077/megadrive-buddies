@@ -20,12 +20,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let defaults = UserDefaults.standard
     private var size: BuddySize = .medium
     private var liveliness: Liveliness = .occasional
+    private var chattiness: Chattiness = .occasional
     /// This app's own level, nothing to do with the system volume.
     private var volume: Float = 0.8
 
     func applicationDidFinishLaunching(_ note: Notification) {
         size = BuddySize(rawValue: CGFloat(defaults.double(forKey: "size"))) ?? .medium
         liveliness = Liveliness(rawValue: defaults.object(forKey: "liveliness") as? Int ?? 1)
+            ?? .occasional
+        chattiness = Chattiness(rawValue: defaults.object(forKey: "chattiness") as? Int ?? 1)
             ?? .occasional
         volume = Float(defaults.object(forKey: "volume") as? Double ?? 0.8)
 
@@ -39,6 +42,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
         cast.liveliness = liveliness
+        cast.chattiness = chattiness
 
         for buddy in cast.buddies {
             restoreSound(for: buddy)
@@ -133,8 +137,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.autoenablesItems = false
         let present = cast.onScreen
 
-        menu.addItem(item("Do Something", #selector(sayHello)))
+        menu.addItem(item("Say Something", #selector(sayHello)))
+        menu.addItem(item("Tell a Joke", #selector(tellJoke)))
+        menu.addItem(item("Tell Me Something", #selector(tellFact)))
         if present.count > 1 {
+            menu.addItem(item("Let Them Talk", #selector(haveThemTalk)))
             menu.addItem(item("Let Them Fight", #selector(haveThemFight)))
         }
         menu.addItem(item("Do a Trick", #selector(doTrick)))
@@ -157,6 +164,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             menu.addItem(characterMenu(for: buddy))
         }
         menu.addItem(.separator())
+
+        let chat = NSMenuItem(title: "Chattiness", action: nil, keyEquivalent: "")
+        let chatMenu = NSMenu()
+        for level in Chattiness.allCases {
+            let mi = item(level.title, #selector(setChattiness(_:)))
+            mi.representedObject = level.rawValue
+            mi.state = level == chattiness ? .on : .off
+            chatMenu.addItem(mi)
+        }
+        chat.submenu = chatMenu
+        menu.addItem(chat)
 
         let pace = NSMenuItem(title: "Liveliness", action: nil, keyEquivalent: "")
         let paceMenu = NSMenu()
@@ -242,13 +260,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func sayHello() {
-        for buddy in cast.onScreen where buddy.brain.isAvailable {
-            buddy.brain.greet()
-        }
+        // One of them answers, rather than all of them at once — a chorus is
+        // noise, and only one bubble can be read at a time anyway.
+        anyone()?.perform(.remark, userAsked: true)
     }
 
     @objc private func doTrick() { anyone()?.doATrick() }
+    @objc private func tellJoke() { anyone()?.perform(.joke, userAsked: true) }
+    @objc private func tellFact() { anyone()?.perform(.fact, userAsked: true) }
     @objc private func haveThemFight() { cast.gatherAndSpar() }
+    @objc private func haveThemTalk() { cast.gatherAndTalk() }
 
     @objc private func comeHere(_ sender: NSMenuItem) {
         guard let id = sender.representedObject as? String else { return }
@@ -285,6 +306,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSScreen.screens.contains {
             $0.visibleFrame.insetBy(dx: -40, dy: -40).contains(point)
         } ? point : nil
+    }
+
+    @objc private func setChattiness(_ sender: NSMenuItem) {
+        guard let raw = sender.representedObject as? Int,
+              let level = Chattiness(rawValue: raw) else { return }
+        chattiness = level
+        cast.chattiness = level
+        defaults.set(raw, forKey: "chattiness")
+        refreshMenu()
     }
 
     @objc private func setLiveliness(_ sender: NSMenuItem) {
@@ -374,10 +404,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         alert.informativeText = """
             \(Product.current.tagline)
 
-            They walk about, throw punches, and square up when two of them end \
-            up near each other. No internet, no analytics, nothing to sell you \
-            — they have their own volume, separate from the system's, and you \
-            can mute or quit them from this menu any time.
+            They walk about, throw punches, square up when two of them end up \
+            near each other, and talk about video games up to 1997 and nothing \
+            after. No internet, no analytics, nothing to sell you — they have \
+            their own volume, separate from the system's, and you can mute or \
+            quit them from this menu any time.
 
             \(Product.current.credit)
             """

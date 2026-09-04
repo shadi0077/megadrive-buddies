@@ -7,6 +7,7 @@ mkdir -p build shots
 
 APPKIT="-framework AppKit -framework ServiceManagement -framework AVFoundation"
 CORE="app/Sources/SpriteStore.swift app/Sources/BuddyView.swift"
+TALK="app/Sources/SpeechBubble.swift app/Sources/GameTalk.swift"
 CAST="app/Sources/Personality.swift app/Sources/AxelPersonality.swift
       app/Sources/SoRPersonalities.swift app/Sources/SonicPersonalities.swift
       app/Sources/ArcadePersonalities.swift app/Sources/RecentPicks.swift"
@@ -27,26 +28,38 @@ case "$ARCH" in *arm64*) ;; *) echo "  FAIL missing arm64 slice"; exit 1;; esac
 echo "  ok   runs on every macOS that has shipped on Apple Silicon"
 
 echo
+echo "== what they talk about =="
+swiftc -O -framework AppKit app/Sources/GameTalk.swift $CAST \
+  app/Sources/Product.swift tools/talktest/main.swift -o build/talktest
+BUDDY_PRODUCT="products/megadrive-buddies.json" ./build/talktest
+
+echo
+echo "== speech bubbles =="
+swiftc -O $APPKIT $CORE $TALK $CAST $ENGINE app/Sources/Product.swift \
+  tools/bubbletest/main.swift -o build/bubbletest
+./build/bubbletest
+
+echo
 echo "== the cast =="
-swiftc -O $APPKIT $CORE $CAST $ENGINE app/Sources/Product.swift \
+swiftc -O $APPKIT $CORE $TALK $CAST $ENGINE app/Sources/Product.swift \
   tools/casttest/main.swift -o build/casttest
 BUDDY_PRODUCT="products/megadrive-buddies.json" BUDDY_APP="$APP" ./build/casttest
 
 echo
 echo "== one sprite per frame =="
-swiftc -O $APPKIT $CORE $CAST $ENGINE app/Sources/Product.swift \
+swiftc -O $APPKIT $CORE $TALK $CAST $ENGINE app/Sources/Product.swift \
   tools/framestest/main.swift -o build/framestest
 BUDDY_APP="$APP" ./build/framestest
 
 echo
 echo "== wander logic =="
-swiftc -O $APPKIT $CORE $CAST $ENGINE app/Sources/Product.swift \
+swiftc -O $APPKIT $CORE $TALK $CAST $ENGINE app/Sources/Product.swift \
   tools/wandertest/main.swift -o build/wandertest
 ./build/wandertest
 
 echo
 echo "== liveliness =="
-swiftc -O $APPKIT $CORE $CAST $ENGINE app/Sources/Product.swift \
+swiftc -O $APPKIT $CORE $TALK $CAST $ENGINE app/Sources/Product.swift \
   tools/alivetest/main.swift -o build/alivetest
 ./build/alivetest
 

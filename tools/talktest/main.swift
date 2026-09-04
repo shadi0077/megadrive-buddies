@@ -1,0 +1,93 @@
+import Foundation
+
+// What they say: no repeats, nothing too long for a bubble, every named
+// speaker exists, and nothing from after 1997.
+var failures = 0
+func check(_ label: String, _ ok: Bool, _ detail: String = "") {
+    if ok { print("  ok   \(label)") } else { print("  FAIL \(label) \(detail)"); failures += 1 }
+}
+
+let everything = GameTalk.facts + GameTalk.idle
+    + GameTalk.jokes.flatMap { [$0.setup, $0.punchline] }
+    + GameTalk.exchanges.flatMap { $0.map(\.text) }
+    + GameTalk.personal.values.flatMap { $0 }
+
+print("there is enough to say:")
+check("\(GameTalk.facts.count) facts", GameTalk.facts.count >= 30)
+check("\(GameTalk.jokes.count) jokes", GameTalk.jokes.count >= 20)
+check("\(GameTalk.idle.count) passing remarks", GameTalk.idle.count >= 15)
+check("\(GameTalk.exchanges.count) exchanges", GameTalk.exchanges.count >= 15)
+
+print("\nnothing repeats:")
+check("no two facts are the same", Set(GameTalk.facts).count == GameTalk.facts.count)
+check("no two setups are the same",
+      Set(GameTalk.jokes.map(\.setup)).count == GameTalk.jokes.count)
+check("no two punchlines are the same",
+      Set(GameTalk.jokes.map(\.punchline)).count == GameTalk.jokes.count)
+check("no two exchanges open the same way",
+      Set(GameTalk.exchanges.map { $0[0].text }).count == GameTalk.exchanges.count)
+let personalLines = GameTalk.personal.values.flatMap { $0 }
+check("no personal line is also in the shared pool",
+      Set(personalLines).isDisjoint(with: Set(GameTalk.idle)))
+
+// The whole conceit is that these are 16-bit characters who stopped paying
+// attention in 1997. A stray later year gives the game away, and it is the
+// sort of thing that creeps in one fact at a time.
+print("\nnothing after 1997:")
+var offenders: [String] = []
+for line in everything {
+    for match in line.split(whereSeparator: { !$0.isNumber }) where match.count == 4 {
+        if let year = Int(match), (1900...2100).contains(year), year > 1997 {
+            offenders.append("\(year): \(line.prefix(50))…")
+        }
+    }
+}
+check("no line mentions a year after 1997", offenders.isEmpty,
+      offenders.joined(separator: " / "))
+
+print("\nevery line fits in a bubble:")
+check("nothing runs past 190 characters",
+      everything.allSatisfy { $0.count <= 190 },
+      everything.first { $0.count > 190 } ?? "")
+check("nothing is blank", everything.allSatisfy { !$0.trimmingCharacters(in: .whitespaces).isEmpty })
+
+print("\nexchanges are exchanges:")
+let known = Set(Personality.everyone.map(\.id))
+var unknown: [String] = []
+for exchange in GameTalk.exchanges {
+    for line in exchange {
+        if let who = line.who, !known.contains(who) { unknown.append(who) }
+    }
+}
+check("no exchange names a character who doesn't exist", unknown.isEmpty,
+      unknown.joined(separator: ", "))
+check("every exchange has at least two lines",
+      GameTalk.exchanges.allSatisfy { $0.count >= 2 })
+check("every exchange that names anyone names at least two",
+      GameTalk.exchanges.allSatisfy { lines in
+          let named = Set(lines.compactMap(\.who))
+          return named.isEmpty || named.count >= 2
+      })
+check("personal lines only name characters who exist",
+      Set(GameTalk.personal.keys).isSubset(of: known),
+      Set(GameTalk.personal.keys).subtracting(known).joined(separator: ", "))
+
+print("\nany two characters can hold a conversation:")
+// If a pair has nothing to say, the Cast finds no exchange and the two of
+// them stand there — so the unattributed pool has to carry every pair.
+let ids = Personality.all.map(\.id)
+var mute: [String] = []
+for a in ids {
+    for b in ids where a < b {
+        if GameTalk.exchanges(for: (a, b)).count < 5 { mute.append("\(a)+\(b)") }
+    }
+}
+check("every pair has at least five exchanges to draw on", mute.isEmpty,
+      mute.prefix(4).joined(separator: ", "))
+// And the pairs written for each other really are extra, not a replacement.
+check("Sonic and Knuckles have more to say to each other than to a stranger",
+      GameTalk.exchanges(for: ("sonic", "knuckles")).count
+          > GameTalk.exchanges(for: ("sonic", "earl")).count)
+
+print(failures == 0 ? "\nall checks passed" : "\n\(failures) FAILED")
+exit(failures == 0 ? 0 : 1)

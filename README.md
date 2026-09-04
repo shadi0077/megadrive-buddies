@@ -8,8 +8,11 @@ Thirty-one Mega Drive characters who live on your macOS desktop. They pace the
 length of the screen at their own speeds, do the things their games had them
 do, and when two of them end up near each other they square up and have a go.
 
-Nobody talks. They grunt, thud, shout, jump and collect rings, each with the
-sound effects out of their own game. Every conversation here is physical.
+They talk, in speech bubbles — about video games, up to 1997, and nothing
+after. Jokes, facts, passing remarks, and two-handers with whoever is standing
+nearest. There are no voices: these are 16-bit characters, and a text box is
+what they had. They also grunt, thud and shout with the sound effects out of
+their own games.
 
 **No network access, no analytics, no bundled anything, no upsell.** They are
 windows that draw a sprite. Quit them from the menu bar and they're gone.
@@ -121,6 +124,41 @@ Facing matters here. Every sprite set faces the viewer's left unmirrored, so
 turning to face somebody means mirroring — and whoever isn't swinging still
 turns to watch.
 
+## What they talk about
+
+![Speech bubbles](docs/img/bubbles.png)
+
+Forty-five facts, twenty-six jokes, twenty-two passing remarks and twenty-two
+two-handers, all of them about games up to 1997 and none about anything after.
+The cutoff is the point: these are characters who stopped paying attention in
+1997, so they talk about arcades, cartridges, the console war and the games
+that were new to them.
+
+> **Sonic:** I do the whole level in thirty seconds.
+> **Knuckles:** Then you've seen none of it.
+> **Sonic:** I've seen it thirty times.
+
+The facts are true. Where a story is famous but the details are argued over,
+it's phrased as the story it is — in 1997 nobody had dug up the E.T. landfill,
+so the line says nobody has checked. `test.sh` enforces the cutoff by scanning
+every line for a year later than 1997, which is exactly how the two slips in
+the first draft were found.
+
+Jokes are told properly: setup, a beat to let it land, then the punchline with
+a flourish. **Chattiness** in the menu is Quiet, Occasional or Chatty, separate
+from **Liveliness** — pacing about and talking are different appetites, and
+somebody who wants a lively desktop doesn't necessarily want it narrated.
+
+Exchanges are written for pairs where the pairing is funny — Sonic and
+Knuckles, Ryu and Terry, ToeJam and Earl — and the rest of the pool is
+unattributed, so any two characters standing near each other have something to
+say. A test asserts every possible pair has at least five exchanges available,
+because a pair with nothing to say just stands there.
+
+There are **no voices**. The app renders a bubble and nothing else: a
+synthesiser reading Sonic's lines aloud would be a different, worse app, and
+these characters never had voices to begin with.
+
 ## Sound instead of speech
 
 `SoundBank` plays short one-shots through `AVAudioPlayer`. Every animation makes
@@ -230,6 +268,7 @@ loops, so a looping flourish reads as a beat of running on the spot.
 | | |
 |---|---|
 | Click | They react |
+| Menu | Say Something, Tell a Joke, Tell Me Something, Let Them Talk |
 | Drag | Pick one up and put it somewhere else |
 | Right-click | Same menu as the menu bar |
 | Menu bar icon | Do Something, Let Them Fight, Do a Trick, Who's Here, volume, per-character controls |

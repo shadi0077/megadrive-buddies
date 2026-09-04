@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.4
+
+- **They talk.** Speech bubbles — no voices — with forty-five facts, twenty-six
+  jokes, twenty-two passing remarks and twenty-two two-hander exchanges, all
+  about video games up to 1997 and nothing after.
+- Jokes are told with a beat between setup and punchline, and a flourish on the
+  punchline.
+- **Chattiness** (Quiet / Occasional / Chatty) is separate from Liveliness:
+  pacing about and talking are different appetites.
+- Two of them standing near each other fall into conversation. Exchanges
+  written for a specific pair only run when that pair is out; the rest of the
+  pool is unattributed and alternates speakers, so any two characters have
+  something to say.
+- The bubble is square-cornered with a hard border and a hard shadow, because a
+  soft modern balloon over a 16-bit sprite looks like an app stuck to its head.
+
 ## 1.3
 
 - **Twelve more characters, from twelve more games.** Earthworm Jim, Pulseman,

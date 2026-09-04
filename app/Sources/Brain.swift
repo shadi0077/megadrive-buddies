@@ -8,6 +8,32 @@ func plog(_ message: @autoclosure () -> String) {
     FileHandle.standardError.write("[cast] \(message())\n".data(using: .utf8)!)
 }
 
+/// How often they have something to say.
+///
+/// Separate from `Liveliness` on purpose: pacing about and talking are
+/// different appetites, and somebody who wants a lively desktop doesn't
+/// necessarily want it narrated.
+enum Chattiness: Int, CaseIterable {
+    case quiet = 0, occasional = 1, chatty = 2
+
+    var title: String {
+        switch self {
+        case .quiet: return "Quiet"
+        case .occasional: return "Occasional"
+        case .chatty: return "Chatty"
+        }
+    }
+
+    /// Weight of the talking beat against settling, wandering and flourishes.
+    var weight: Double {
+        switch self {
+        case .quiet: return 0
+        case .occasional: return 0.30
+        case .chatty: return 0.85
+        }
+    }
+}
+
 /// How often they do anything at all.
 enum Liveliness: Int, CaseIterable {
     case calm = 0, occasional = 1, restless = 2
@@ -47,11 +73,13 @@ final class Brain {
     }
 
     /// Set by the Cast: false while somebody else has the floor. Two of them
-    /// swinging at once is a scrum rather than a fight.
+    /// swinging at once is a scrum rather than a fight, and two of them
+    /// talking at once is unreadable.
     var mayAct: (() -> Bool)?
     private let store: SpriteStore
     private let animator: Animator
     private let window: BuddyWindow
+    private let bubble = SpeechBubbleWindow()
 
     private enum Mode { case away, busy, idle, dragging }
     private var mode: Mode = .away
@@ -64,6 +92,8 @@ final class Brain {
 
     private var nextBeat: TimeInterval = 0
     private var clock: TimeInterval = 0
+    /// When the current speech bubble should come down.
+    private var bubbleUntil: TimeInterval = 0
 
     /// In-flight travel, driven from the animator tick.
     private var travel: (from: NSPoint, to: NSPoint, t: Double, duration: Double)?
@@ -86,10 +116,15 @@ final class Brain {
     private var lastPokeAt: TimeInterval = -100
 
     private var recentMoves = RecentPicks(limit: 4)
+    private var recentLines = RecentPicks(limit: 10)
+    private var recentJokes = RecentPicks(limit: 8)
+    private var recentFacts = RecentPicks(limit: 14)
 
     var liveliness: Liveliness = .occasional {
         didSet { scheduleBeat() }
     }
+
+    var chattiness: Chattiness = .occasional
 
     var isVisible: Bool { mode != .away }
 
@@ -267,6 +302,8 @@ final class Brain {
 
     private func hideNow() {
         sounds?.stop()
+        bubbleUntil = 0
+        bubble.dismiss()
         mode = .away
         window.orderOut(nil)
     }
@@ -307,10 +344,21 @@ final class Brain {
         }
 
         updateCursor(dt)
-        if mode == .idle, clock >= nextBeat { idleBeat() }
+        if bubbleUntil > 0, clock > bubbleUntil {
+            bubbleUntil = 0
+            bubble.dismiss()
+            // Give them a breath after finishing a thought. The gap is
+            // scheduled when a beat *starts*, so without this a long line runs
+            // straight into the next beat and jokes arrive back to back.
+            nextBeat = max(nextBeat, clock + Double.random(in: personality.beatRange)
+                * liveliness.pace * 0.6)
+        }
+        // Never start a beat mid-sentence: they would wander off mid-joke.
+        if mode == .idle, bubbleUntil == 0, clock >= nextBeat { idleBeat() }
+        repositionBubble()
     }
 
-    private enum Beat { case settle, wander, bit, flourish }
+    private enum Beat { case settle, wander, bit, flourish, talk }
 
     private func idleBeat() {
         // Don't start anything while somebody else has the floor.
@@ -328,8 +376,9 @@ final class Brain {
         let beat = Self.weightedPick([(Beat.settle, 0.10 + 0.40 * settled),
                                       (.wander, (0.07 + 0.28 * energy)
                                                 * personality.roaming.restlessness),
-                                      (.bit, 0.20),
-                                      (.flourish, 0.20 + 0.48 * energy)],
+                                      (.bit, 0.18),
+                                      (.flourish, 0.18 + 0.40 * energy),
+                                      (.talk, chattiness.weight)],
                                      roll: Double.random(in: 0..<1)) ?? .settle
 
         switch beat {
@@ -344,6 +393,10 @@ final class Brain {
             performBit(personality.bits.randomElement()!)
         case .flourish:
             perform(move(personality.flourishes))
+        case .talk:
+            // Jokes are longer than the rest, so they come up less often.
+            perform(Self.weightedPick([(Turn.remark, 3.0), (.fact, 2.2), (.joke, 1.2)],
+                                      roll: Double.random(in: 0..<1)) ?? .remark)
         }
     }
 
@@ -363,6 +416,157 @@ final class Brain {
     /// Cut any noise short — used whenever something else takes over.
     private func stopNoise() {
         sounds?.stop()
+    }
+
+    // MARK: - Talking
+
+    /// True while a bubble of theirs is up.
+    var isTalking: Bool { bubbleUntil > 0 }
+
+    /// How long a line stays up: long enough to read, and no longer.
+    ///
+    /// There is no voice here, so nothing else sets the pace — the bubble is
+    /// the whole performance. Measured against reading it aloud, roughly 190
+    /// words a minute plus a moment to notice it appeared.
+    static func readingTime(_ text: String) -> TimeInterval {
+        min(9.0, 1.5 + Double(text.count) * 0.048)
+    }
+
+    /// Put a line in a bubble over their head, and call `then` when the line
+    /// has actually been read rather than when it was requested.
+    ///
+    /// Waits for the floor rather than talking over somebody else, but only
+    /// for a few seconds — a long-winded neighbour shouldn't silence them.
+    ///
+    /// The callback has to be handed to `say` rather than chained after it.
+    /// Polling for the end of a line that hasn't started yet finds no bubble
+    /// up, concludes the line is over, and releases the next one: in a
+    /// two-hander that puts the reply on screen before the question. It did
+    /// exactly that — Knuckles answered "then you've seen none of it" before
+    /// Sonic had claimed anything.
+    func say(_ text: String, waited: TimeInterval = 0, then: (() -> Void)? = nil) {
+        guard !text.isEmpty, mode != .away else { then?(); return }
+        if let may = mayTalk, !may(), waited < 4 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in
+                self?.say(text, waited: waited + 0.4, then: then)
+            }
+            return
+        }
+        guard let screen = currentScreen() else { then?(); return }
+        plog("say: \(text)")
+        bubble.present(text, pointingAt: headAnchor(), on: screen)
+        bubbleUntil = clock + Self.readingTime(text)
+        if let then { afterSpeaking(0.3, then) }
+    }
+
+    /// Set by the Cast: false while somebody else is mid-sentence.
+    var mayTalk: (() -> Bool)?
+
+    private func stopTalking() {
+        guard bubbleUntil > 0 else { return }
+        bubbleUntil = 0
+        bubble.dismiss()
+    }
+
+    /// Screen point just above their head, where the bubble's tail lands.
+    private func headAnchor() -> NSPoint {
+        let f = window.frame
+        return NSPoint(x: f.midX, y: f.maxY - f.height * 0.12)
+    }
+
+    private func repositionBubble() {
+        guard bubbleUntil > 0, bubble.alphaValue > 0,
+              let screen = currentScreen() else { return }
+        let anchor = headAnchor()
+        var origin = bubble.frame.origin
+        origin.x = anchor.x - bubble.frame.width / 2
+        origin.y = anchor.y
+        let vf = screen.visibleFrame
+        origin.x = min(max(origin.x, vf.minX + 6), vf.maxX - bubble.frame.width - 6)
+        origin.y = min(max(origin.y, vf.minY + 6), vf.maxY - bubble.frame.height - 6)
+        bubble.setFrameOrigin(origin)
+    }
+
+    /// Run `work` once they have actually finished the line they are on.
+    private func afterSpeaking(_ gap: TimeInterval = 0.35, _ work: @escaping () -> Void) {
+        func check() {
+            guard bubbleUntil > 0, clock < bubbleUntil else {
+                DispatchQueue.main.asyncAfter(deadline: .now() + gap, execute: work)
+                return
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { check() }
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { check() }
+    }
+
+    // MARK: - Turns
+
+    /// The set-piece performances, as opposed to idle fidgeting.
+    enum Turn: CaseIterable { case joke, fact, remark }
+
+    /// Run one, then hand back to idle. Safe to call from a menu at any time.
+    /// `userAsked` distinguishes a menu request from one of their own idle
+    /// beats: being asked for something is attention, and lifts their energy.
+    func perform(_ turn: Turn, userAsked: Bool = false) {
+        guard mode != .away else { return }
+        stopTalking()
+        cancelTravel()
+        mode = .idle
+        if userAsked { stir(0.3) }
+        plog("turn: \(turn)\(userAsked ? " (asked)" : "")")
+        switch turn {
+        case .joke: tellJoke()
+        case .fact: say(recentFacts.pick(from: GameTalk.facts))
+        case .remark: say(recentLines.pick(from: GameTalk.smallTalk(for: personality.id)))
+        }
+    }
+
+    /// Setup, a beat to let it land, then the punchline with a flourish.
+    private func tellJoke() {
+        // Pick once: pick() mutates, so calling it inside first(where:) would
+        // re-roll for every element and compare against a moving target.
+        let setup = recentJokes.pick(from: GameTalk.jokes.map(\.setup))
+        guard let joke = GameTalk.jokes.first(where: { $0.setup == setup }) else { return }
+        say(joke.setup) { [weak self] in
+            guard let self, self.mode == .idle else { return }
+            // A beat, then the punchline with a flourish. The beat is the joke.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                self.perform(self.move(self.personality.flourishes)) {
+                    self.say(joke.punchline)
+                }
+            }
+        }
+    }
+
+    /// Deliver one line of an exchange, optionally with a move first and
+    /// turned toward whoever they are talking to. Calls back when it lands.
+    func deliver(_ text: String, move preferred: [String]?, facing: CGFloat?,
+                 completion: @escaping () -> Void) {
+        guard mode == .idle else { completion(); return }
+        stopTalking()
+        stir(0.15)
+        if let facing { face(toward: facing) }
+        let token = bump()
+
+        let speak = { [weak self] in
+            guard let self, self.current(token) else { completion(); return }
+            self.say(text) { [weak self] in
+                guard let self, self.current(token) else { return }
+                self.animator.mirrored = false
+                completion()
+            }
+        }
+
+        guard let preferred, !preferred.isEmpty else { speak(); return }
+        mode = .busy
+        let clip = move(preferred)
+        makeNoise(noise(for: clip))
+        playOnce(clip, token: token) { [weak self] in
+            guard let self else { completion(); return }
+            self.mode = .idle
+            self.animator.play("rest")
+            speak()
+        }
     }
 
     /// Play one clip and hand back, whether or not the clip ever ends.
@@ -480,6 +684,7 @@ final class Brain {
     func walkTo(_ target: NSPoint, then: (() -> Void)? = nil) {
         guard mode == .idle || mode == .busy else { return }
         stopNoise()
+        stopTalking()
         cancelTravel()
         mode = .busy
         let from = window.frame.origin
@@ -537,7 +742,7 @@ final class Brain {
     // MARK: - Squaring up
 
     /// Free to be pulled into an exchange.
-    var isAvailable: Bool { mode == .idle }
+    var isAvailable: Bool { mode == .idle && bubbleUntil == 0 }
 
     var centreX: CGFloat { window.frame.midX }
     var frameOnScreen: NSRect { window.frame }
@@ -589,12 +794,15 @@ final class Brain {
 
     // MARK: - Direct interaction
 
-    /// Acknowledge you, in the only way they have.
+    /// Acknowledge you: a move, and something to say about 1993.
     func greet() {
         guard mode == .idle else { return }
         stopNoise()
         stir(0.2)
-        perform(move(["celebrate", "guard", "stretch"]))
+        perform(move(["celebrate", "guard", "stretch"])) { [weak self] in
+            guard let self, self.chattiness != .quiet else { return }
+            self.say(self.recentLines.pick(from: GameTalk.smallTalk(for: self.personality.id)))
+        }
     }
 
     func poke() {
@@ -657,6 +865,7 @@ final class Brain {
         window.onDragBegan = { [weak self] in
             guard let self else { return }
             self.stopNoise()
+            self.stopTalking()
             self.cancelTravel()
             self.stir(0.35)
             plog("drag began")
