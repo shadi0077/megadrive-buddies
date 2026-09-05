@@ -25,7 +25,8 @@ TITLES = {"axel1": "Axel (1991)", "blaze1": "Blaze (1991)",
           "jim": "Earthworm Jim", "toejam": "ToeJam", "robert": "Robert Garcia",
           "donald": "Donald Duck", "moonwalker": "Michael Jackson",
           "sketch": "Sketch Turner", "musashi": "Joe Musashi",
-          "michelangelo": "Michelangelo"}
+          "michelangelo": "Michelangelo", "axel3": "Axel (1994)",
+          "spinball": "Sonic (Spinball)"}
 
 # Mirrors `Personality.scale`, so the lineup shows them at the sizes they
 # actually stand at next to each other.
@@ -38,7 +39,7 @@ SCALES = {"axel": 1.55, "blaze": 1.55, "max": 1.55, "skate": 1.55,
           "robert": 1.15, "donald": 2.9, "moonwalker": 1.85, "gambit": 1.45,
           "sketch": 1.55, "ryu": 1.4, "musashi": 1.75, "sparkster": 2.5,
           "raphael": 1.95, "leonardo": 1.7, "michelangelo": 1.85,
-          "donatello": 1.9}
+          "donatello": 1.9, "axel3": 1.5, "spinball": 2.3}
 
 PAD, GAP, LABEL = 18, 14, 22
 PER_ROW = int(sys.argv[4]) if len(sys.argv) > 4 else 10

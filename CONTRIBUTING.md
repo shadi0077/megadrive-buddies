@@ -72,14 +72,14 @@ ranges, and read the traps listed in the README.
 6. Give them a menu-bar frame in `AppDelegate.statusIcon()` if their sheet has
    portrait art — it reads much better at 18pt than an action frame.
 
-Several sheets are already cut with nothing authored for them, if you want a
-ready-made starting point:
+One sheet is cut with nothing authored for it, and it's the interesting one:
 
-- `axel3` — Streets of Rage 3 Axel, 177 frames, straightforward.
-- `spinball` — Sonic Spinball. A different Sonic, though he looks much like the
-  Sonic 2 one at desktop size, which is why he isn't in the cast.
-- `headdy` — Dynamite Headdy, whose sheet is split into separate head and body
-  pieces meant to be composited. He needs more than a range in `catalog.py`.
+`headdy` — Dynamite Headdy. His sheet is sectioned BODY 1 and HEAD 1, and it
+contains no complete figure anywhere: every sprite is a part. Compositing does
+look right — try body 21 with head 61 — but shipping him needs a per-frame
+pairing of head to body and a step that renders the composites into a normal
+frame pack. That's authoring rather than cutting, which is why he isn't in.
+
 The Hyperstone Heist turtles used to be on this list. They needed
 `sheet.py --blobs`, which segments by connected pixels rather than by bands and
 columns — see the README for what that fixes and what it breaks.

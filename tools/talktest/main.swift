@@ -72,6 +72,16 @@ check("personal lines only name characters who exist",
       Set(GameTalk.personal.keys).isSubset(of: known),
       Set(GameTalk.personal.keys).subtracting(known).joined(separator: ", "))
 
+print("\neverybody has something of their own to say:")
+// Shared remarks are about games; personal lines are about being *that*
+// character, and a character with none is a stranger reciting trivia.
+var voiceless: [String] = []
+for p in Personality.all where (GameTalk.personal[p.id] ?? []).count < 1 {
+    voiceless.append(p.id)
+}
+check("every character in the cast has lines of its own", voiceless.isEmpty,
+      voiceless.joined(separator: ", "))
+
 print("\nany two characters can hold a conversation:")
 // If a pair has nothing to say, the Cast finds no exchange and the two of
 // them stand there — so the unattributed pool has to carry every pair.

@@ -71,6 +71,7 @@ struct Personality {
         .donald, .moonwalker, .sparkster,
         .robert, .ryu, .musashi, .gambit, .sketch,   // brawlers
         .raphael, .leonardo, .michelangelo, .donatello,   // Hyperstone Heist
+        .axel3, .spinball,                    // later games, familiar faces
     ]
 
     static let all: [Personality] = {

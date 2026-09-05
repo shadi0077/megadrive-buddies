@@ -14,6 +14,17 @@ CAST="app/Sources/Personality.swift app/Sources/AxelPersonality.swift
 ENGINE="app/Sources/Animator.swift app/Sources/BuddyWindow.swift
         app/Sources/SoundBank.swift app/Sources/Brain.swift"
 
+# ./test.sh audio plays real sound through the speakers, which the rest of the
+# suite deliberately never does: a CI runner has no audio device, and playing
+# clips in bulk once wedged this machine's audio server for an hour.
+if [ "${1:-}" = "audio" ]; then
+    echo "== sound actually reaching the speakers =="
+    swiftc -O -framework AppKit -framework AVFoundation \
+      app/Sources/SoundBank.swift tools/soundcheck/main.swift -o build/soundcheck
+    BUDDY_APP="build/MegaDrive Buddies.app" ./build/soundcheck
+    exit $?
+fi
+
 echo "== deployment target =="
 ./build.sh >/dev/null
 APP="build/MegaDrive Buddies.app"

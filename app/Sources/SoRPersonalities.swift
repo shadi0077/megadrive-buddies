@@ -114,6 +114,14 @@ extension Personality {
                                flourishes: ["kick", "highKick"],
                                bits: [hit("highKick"), hit("knockdown")])
 
+    /// Streets of Rage 3, two years and one art style later. Same man, longer
+    /// legs, and a sheet that finally has a proper walk in it.
+    static let axel3 = brawler("axel3", scale: 1.5, beats: 7...16, speed: 175,
+                               distance: 600...2200, restlessness: 2.4,
+                               flourishes: ["punch", "kick", "run"],
+                               bits: [hit("knockdown"), hit("kick")],
+                               title: "Axel (1994)")
+
     static let slum = brawler("slum", scale: 1.6, beats: 9...20, speed: 160,
                               distance: 500...1600, restlessness: 2.2,
                               flourishes: ["punch", "attack"],

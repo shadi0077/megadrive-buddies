@@ -93,6 +93,16 @@ extension Personality {
                                     soundSet: "_sonic3k",
                                     title: "Sonic (3D Blast)")
 
+    /// Sonic Spinball, 1993. Same hedgehog, drawn by a different team in a
+    /// different country, and it shows in the face.
+    static let spinball = platformer("spinball", scale: 2.3, beats: 6...13,
+                                     speed: 330, distance: 900...3000,
+                                     restlessness: 3.2, walk: "run",
+                                     flourishes: ["walk", "spin", "push"],
+                                     bits: [moment("spin"), moment("push")],
+                                     soundSet: "_sonic2",
+                                     title: "Sonic (Spinball)")
+
     /// The one newcomer who can actually fight, so he keeps the sound set and
     /// squares up like the Streets of Rage cast.
     static let terry = platformer("terry", scale: 1.3, beats: 8...18, speed: 150,

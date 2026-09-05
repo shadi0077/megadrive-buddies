@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.6
+
+- **Axel (1994) and Sonic (Spinball)** — thirty-seven characters. Three Axels
+  and four Sonics, which is defensible only because the sprites are genuinely
+  different work by different teams in different years.
+- **Much more to say**: 64 facts (was 45), 36 jokes (was 26) and 34 exchanges
+  (was 22), and every character in the cast now has lines only it would say.
+  A test enforces that last part.
+- `./test.sh audio` plays real sound and checks it reaches the speakers,
+  separately from the main suite, which never plays anything: a CI runner has
+  no audio device, and playing clips in bulk is what wedged this machine's
+  audio server.
+
 ## 1.5
 
 - **The Hyperstone Heist turtles.** Raphael, Leonardo, Michelangelo and

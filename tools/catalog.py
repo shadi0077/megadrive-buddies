@@ -26,6 +26,7 @@ ICONS = {
     "robert": 0, "donald": 0, "moonwalker": 22, "gambit": 30, "sketch": 0,
     "ryu": 0, "musashi": 0, "sparkster": 13, "ristar": 0, "terry": 0,
     "raphael": 7, "leonardo": 7, "michelangelo": 11, "donatello": 7,
+    "axel3": 0, "spinball": 52,
 }
 
 
@@ -452,6 +453,32 @@ DONATELLO = {
     "depart":    (rng(18, 21), 10, False),
 }
 
+
+# --------------------------------------------------------------------------
+# Two more of a character we already have, from games we don't.
+# --------------------------------------------------------------------------
+
+AXEL3 = {                                  # Streets of Rage 3
+    "rest":      (rng(0, 5), 6, True),
+    "walk":      (rng(6, 12), 12, True),
+    "run":       (rng(13, 17), 15, True),
+    "punch":     (rng(23, 26), 13, False),
+    "kick":      (rng(32, 35), 12, False),
+    "knockdown": (rng(18, 21), 9, False),
+    "arrive":    (rng(6, 12), 12, False),
+    "depart":    (rng(6, 12), 12, False),
+}
+
+SPINBALL = {                               # Sonic Spinball
+    "rest":      ([52, 53, 55], 3, True),
+    "walk":      (rng(25, 31), 11, True),
+    "run":       (rng(32, 39), 15, True),
+    "spin":      (rng(40, 45), 14, False),
+    "push":      (rng(20, 24), 9, False),
+    "arrive":    (rng(32, 39), 15, False),
+    "depart":    (rng(32, 39), 15, False),
+}
+
 for name, clips in [("axel", AXEL), ("blaze", BLAZE), ("max", MAX), ("skate", SKATE),
                     ("adam", ADAM), ("axel1", AXEL1), ("blaze1", BLAZE1),
                     ("galsia", GALSIA), ("donovan", DONOVAN), ("eagle", EAGLE),
@@ -465,7 +492,8 @@ for name, clips in [("axel", AXEL), ("blaze", BLAZE), ("max", MAX), ("skate", SK
                     ("sketch", SKETCH), ("ryu", RYU), ("musashi", MUSASHI),
                     ("sparkster", SPARKSTER), ("raphael", RAPHAEL),
                     ("leonardo", LEONARDO), ("michelangelo", MICHELANGELO),
-                    ("donatello", DONATELLO)]:
+                    ("donatello", DONATELLO), ("axel3", AXEL3),
+                    ("spinball", SPINBALL)]:
     if not os.path.isdir(f"app/Resources/characters/{name}/frames"):
         print(f"{name}: no sprites imported, skipping")
         continue

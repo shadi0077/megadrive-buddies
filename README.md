@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
 ![Platform](https://img.shields.io/badge/macOS-11%2B%20(Apple%20Silicon)-lightgrey)
 
-Thirty-five Mega Drive characters who live on your macOS desktop. They pace the
+Thirty-seven Mega Drive characters who live on your macOS desktop. They pace the
 length of the screen at their own speeds, do the things their games had them
 do, and when two of them end up near each other they square up and have a go.
 
@@ -60,12 +60,16 @@ seconds and seven megabytes.
 | **ToeJam & Earl** | ToeJam, Earl |
 | **Fighters** | Terry Bogard, Ryu, Robert Garcia, Joe Musashi, Gambit, Sketch Turner |
 | **Hyperstone Heist** | Raphael, Leonardo, Michelangelo, Donatello |
+| **Later, same faces** | Axel (1994), Sonic (Spinball) |
 | **Moonwalker** | Michael Jackson |
 
 Both Streets of Rage games have an Axel and a Blaze, seven years apart, so the
 older pair carry the year in the menu; the 3D Blast Sonic is pre-rendered
 rather than drawn and looks it, which is why he ships alongside the Sonic 2
-one rather than instead of him. Have one of them out, or all thirty-five.
+one rather than instead of him. Have one of them out, or all thirty-seven.
+Three Axels and four Sonics is a lot of one man and one hedgehog, but the
+sprites really are different work by different teams in different years, which
+is most of the interest.
 
 They're told apart by how they move rather than by what they say, because there
 is nothing to say:
@@ -129,8 +133,9 @@ turns to watch.
 
 ![Speech bubbles](docs/img/bubbles.png)
 
-Forty-five facts, twenty-six jokes, twenty-two passing remarks and twenty-two
-two-handers, all of them about games up to 1997 and none about anything after.
+Sixty-four facts, thirty-six jokes, twenty-two passing remarks and thirty-four
+two-handers, all of them about games up to 1997 and none about anything after,
+plus lines of their own for every character in the cast.
 The cutoff is the point: these are characters who stopped paying attention in
 1997, so they talk about arcades, cartridges, the console war and the games
 that were new to them.
@@ -155,6 +160,12 @@ Knuckles, Ryu and Terry, ToeJam and Earl — and the rest of the pool is
 unattributed, so any two characters standing near each other have something to
 say. A test asserts every possible pair has at least five exchanges available,
 because a pair with nothing to say just stands there.
+
+Every character has at least one line only they would say — Michelangelo has
+opinions about nunchaku censorship, Earl declines to hurry, Galsia notes that
+somebody has to be the first thing you hit. A test enforces it: shared remarks
+are about games, and a character with none of its own is a stranger reciting
+trivia.
 
 There are **no voices**. The app renders a bubble and nothing else: a
 synthesiser reading Sonic's lines aloud would be a different, worse app, and
