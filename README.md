@@ -133,9 +133,12 @@ turns to watch.
 
 ![Speech bubbles](docs/img/bubbles.png)
 
-Sixty-four facts, thirty-six jokes, twenty-two passing remarks and thirty-four
-two-handers, all of them about games up to 1997 and none about anything after,
-plus lines of their own for every character in the cast.
+Sixty-four facts, eighty-nine jokes, seventy-two passing remarks and
+seventy-eight two-handers, all about games up to 1997 and none about anything
+after, plus a hundred and twenty lines belonging to particular characters. The
+thinnest character in the cast has seventy-five things it can say before it has
+to repeat itself, and `test.sh` holds that number as a floor rather than a
+target.
 The cutoff is the point: these are characters who stopped paying attention in
 1997, so they talk about arcades, cartridges, the console war and the games
 that were new to them.
@@ -161,11 +164,12 @@ unattributed, so any two characters standing near each other have something to
 say. A test asserts every possible pair has at least five exchanges available,
 because a pair with nothing to say just stands there.
 
-Every character has at least one line only they would say — Michelangelo has
+Every character has at least three lines only they would say — Michelangelo has
 opinions about nunchaku censorship, Earl declines to hurry, Galsia notes that
-somebody has to be the first thing you hit. A test enforces it: shared remarks
-are about games, and a character with none of its own is a stranger reciting
-trivia.
+somebody has to be the first thing you hit, and Donatello knows the bo has the
+longest reach in the game and that nobody uses it. A test enforces the minimum:
+shared remarks are about games, and a character with none of its own is a
+stranger reciting trivia.
 
 There are **no voices**. The app renders a bubble and nothing else: a
 synthesiser reading Sonic's lines aloud would be a different, worse app, and

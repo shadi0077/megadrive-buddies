@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.7
+
+- **A great deal more to say.** 89 jokes (was 36), 78 exchanges (was 34), 72
+  passing remarks (was 22) and 120 lines belonging to particular characters
+  (was 45). Every character now has at least three of its own.
+- The content tests hold those numbers as floors, and assert that the thinnest
+  character in the cast has at least seventy things it can say — the point
+  being how long it takes before anybody repeats itself, which with a cast of
+  thirty-seven is the thing that actually degrades.
+
 ## 1.6
 
 - **Axel (1994) and Sonic (Spinball)** — thirty-seven characters. Three Axels

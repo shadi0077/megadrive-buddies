@@ -13,10 +13,14 @@ let everything = GameTalk.facts + GameTalk.idle
     + GameTalk.personal.values.flatMap { $0 }
 
 print("there is enough to say:")
-check("\(GameTalk.facts.count) facts", GameTalk.facts.count >= 30)
-check("\(GameTalk.jokes.count) jokes", GameTalk.jokes.count >= 20)
-check("\(GameTalk.idle.count) passing remarks", GameTalk.idle.count >= 15)
-check("\(GameTalk.exchanges.count) exchanges", GameTalk.exchanges.count >= 15)
+// Floors, not targets. They exist so the repertoire can't quietly shrink back
+// to the size where a character repeats itself inside a morning.
+check("\(GameTalk.facts.count) facts", GameTalk.facts.count >= 60)
+check("\(GameTalk.jokes.count) jokes", GameTalk.jokes.count >= 85)
+check("\(GameTalk.idle.count) passing remarks", GameTalk.idle.count >= 70)
+check("\(GameTalk.exchanges.count) exchanges", GameTalk.exchanges.count >= 75)
+check("\(GameTalk.personal.values.flatMap { $0 }.count) lines belonging to somebody",
+      GameTalk.personal.values.flatMap { $0 }.count >= 110)
 
 print("\nnothing repeats:")
 check("no two facts are the same", Set(GameTalk.facts).count == GameTalk.facts.count)
@@ -76,11 +80,16 @@ print("\neverybody has something of their own to say:")
 // Shared remarks are about games; personal lines are about being *that*
 // character, and a character with none is a stranger reciting trivia.
 var voiceless: [String] = []
-for p in Personality.all where (GameTalk.personal[p.id] ?? []).count < 1 {
-    voiceless.append(p.id)
+for p in Personality.all where (GameTalk.personal[p.id] ?? []).count < 3 {
+    voiceless.append("\(p.id)(\((GameTalk.personal[p.id] ?? []).count))")
 }
-check("every character in the cast has lines of its own", voiceless.isEmpty,
-      voiceless.joined(separator: ", "))
+check("every character in the cast has at least three lines of its own",
+      voiceless.isEmpty, voiceless.joined(separator: ", "))
+
+// How long before a character starts repeating itself: the pool it draws on
+// when it simply has something to say.
+let smallest = Personality.all.map { GameTalk.smallTalk(for: $0.id).count }.min() ?? 0
+check("the thinnest character still has \(smallest) things to say", smallest >= 70)
 
 print("\nany two characters can hold a conversation:")
 // If a pair has nothing to say, the Cast finds no exchange and the two of
