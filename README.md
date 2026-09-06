@@ -18,7 +18,7 @@ windows that draw a sprite. Quit them from the menu bar and they're gone.
 📖 **[shadi0077.github.io/desktop-buddies](https://shadi0077.github.io/desktop-buddies/megadrive-buddies.html)**
 
 The sibling app in this repository is
-**[Desktop Buddies](desktop-buddies.md)** — the same engine with the talking
+**[Desktop Buddies](https://shadi0077.github.io/desktop-buddies/)** — the same engine with the talking
 left in: nine Microsoft Agent characters who tell jokes, sing, and argue with
 each other.
 
