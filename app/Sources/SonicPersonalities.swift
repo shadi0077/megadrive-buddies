@@ -20,12 +20,13 @@ extension Personality {
     ) -> Personality {
         Personality(
             id: id,
+            pixelArt: true,
             soundSet: soundSet,
             scale: scale,
             beatRange: beats,
             roaming: .init(distance: distance, speed: speed,
                            restlessness: restlessness),
-            walk: walk,
+            travel: .hops(cruise: walk),
             flourishes: flourishes,
             bits: bits,
             title: title

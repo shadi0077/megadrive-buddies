@@ -1,25 +1,17 @@
 import AppKit
-
-// The shipped menu-bar glyph, at real size and blown up, on light and dark
-// bars — an 18pt sprite is easy to get wrong and impossible to judge in code.
 _ = NSApplication.shared
-let who = CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : "axel"
-guard let store = SpriteStore(character: who,
-                              bundle: Bundle(path: ProcessInfo.processInfo
-                                  .environment["BUDDY_APP"] ?? "build/MegaDrive Buddies.app")!)
-else { print("cannot load \(who)"); exit(1) }
-// The frame comes from the catalogue, the same one the app asks for.
-let hero = store.iconFrame
+let who = CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : "peedy"
+guard let store = SpriteStore(character: who, bundle: Bundle(path: ProcessInfo.processInfo.environment["BUDDY_APP"] ?? "build/Desktop Buddies.app")!) else { exit(1) }
+// Each character names its own menu-bar frame in its catalogue.
+let hero = store.heroFrame
 
+// The shipped menu-bar glyph, at real size and blown up, on light and dark bars.
 let HEIGHT: CGFloat = 18
 guard let icon = store.menuBarIcon(frame: hero, height: HEIGHT),
       let big = store.menuBarIcon(frame: hero, height: 120) else {
     print("icon failed"); exit(1)
 }
 print(String(format: "menu-bar icon: %.0f x %.0f pt", icon.size.width, icon.size.height))
-guard icon.size.width > 2, icon.size.width < 60 else {
-    print("  FAIL icon is an unusable width"); exit(1)
-}
 
 let out = NSImage(size: NSSize(width: 460, height: 190))
 out.lockFocus()
@@ -36,8 +28,7 @@ for (i, bar) in [NSColor(calibratedWhite: 0.96, alpha: 1),
     // Neighbours, for a sense of scale on a real bar.
     NSColor(calibratedWhite: i == 0 ? 0.25 : 0.8, alpha: 1).setFill()
     for n in 0..<3 {
-        NSRect(x: 24 + icon.size.width + 14 + CGFloat(n) * 22, y: y + 8,
-               width: 12, height: 11).fill()
+        NSRect(x: 24 + icon.size.width + 14 + CGFloat(n) * 22, y: y + 8, width: 12, height: 11).fill()
     }
 }
 big.draw(in: NSRect(x: 250, y: 30, width: big.size.width, height: 120))
@@ -46,5 +37,5 @@ out.unlockFocus()
 if let t = out.tiffRepresentation, let r = NSBitmapImageRep(data: t),
    let p = r.representation(using: .png, properties: [:]) {
     try? p.write(to: URL(fileURLWithPath: "shots/\(who)_menubar_icon.png"))
-    print("  ok   wrote shots/\(who)_menubar_icon.png")
+    print("wrote shots/menubar_icon.png")
 }

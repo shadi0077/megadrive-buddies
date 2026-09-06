@@ -1,11 +1,10 @@
 import Foundation
 
-/// Which app this build is.
+/// Which app this build is, and who ships with it.
 ///
-/// A product is a manifest in `products/`: a name, a bundle identifier, and the
-/// cast that ships with it. The build copies only that cast's sprites and the
-/// app filters its roster to match, so a second app — a different roster, or
-/// one game's characters on their own — is a JSON file rather than a target.
+/// The cast lives in a manifest rather than in the sources, so adding a
+/// character to the app is a line of JSON and a sprite folder — the build
+/// copies only the characters the manifest names.
 struct Product {
     let id: String
     let name: String
@@ -36,4 +35,10 @@ struct Product {
                        cast: cast,
                        credit: root["credit"] as? String ?? "")
     }()
+
+    /// True when nobody in this product can talk out loud — which decides
+    /// whether the menu offers songs and voices, or a fight.
+    var isSilent: Bool {
+        !Personality.all.contains { $0.speaks }
+    }
 }

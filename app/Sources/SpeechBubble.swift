@@ -1,106 +1,137 @@
 import AppKit
 
-/// A speech box with a tail, drawn in its own transparent window so it can
-/// hang outside the character's window bounds.
-///
-/// Square corners, a hard border and a hard shadow: these are Mega Drive
-/// characters, and a soft rounded balloon on top of a 16-bit sprite looks like
-/// a sprite with a modern app stuck to its head. The tail is stepped rather
-/// than smooth for the same reason.
+/// A rounded speech balloon with a tail, drawn in its own transparent window
+/// so it can hang outside the bird's window bounds.
 final class BubbleView: NSView {
     enum TailSide { case bottom, top }
 
     var text: String = "" { didSet { needsDisplay = true } }
+
+    /// Two looks, because there are two kinds of character here. The Agent
+    /// characters are 3D renders and get a soft balloon; a 16-bit sprite with
+    /// a soft balloon over its head looks like a modern app stuck to it, so
+    /// those get square corners, a hard border and a hard shadow.
+    var pixel = false { didSet { needsDisplay = true } }
+    /// Arabic reads right to left. CoreText shapes and joins the glyphs on its
+    /// own, but the paragraph's base direction has to be set explicitly or
+    /// punctuation and any embedded Latin land on the wrong end of the line.
+    var rightToLeft = false { didSet { needsDisplay = true } }
     var tail: TailSide = .bottom { didSet { needsDisplay = true } }
     /// Horizontal position of the tail, in view coordinates.
     var tailX: CGFloat = 0 { didSet { needsDisplay = true } }
 
-    static let inset = NSEdgeInsets(top: 11, left: 14, bottom: 11, right: 14)
-    static let tailHeight: CGFloat = 11
-    static let tailWidth: CGFloat = 16
-    static let border: CGFloat = 2.5
-    static let shadow: CGFloat = 4
-    static let maxTextWidth: CGFloat = 250
+    static let inset = NSEdgeInsets(top: 12, left: 16, bottom: 12, right: 16)
+    static let tailHeight: CGFloat = 12
+    static let tailWidth: CGFloat = 18
+    static let maxTextWidth: CGFloat = 240
 
     override var isOpaque: Bool { false }
 
-    static func attributed(_ s: String) -> NSAttributedString {
+    static func attributed(_ s: String, rightToLeft: Bool = false) -> NSAttributedString {
         let para = NSMutableParagraphStyle()
         para.alignment = .center
         para.lineBreakMode = .byWordWrapping
-        para.lineSpacing = 1
+        para.baseWritingDirection = rightToLeft ? .rightToLeft : .leftToRight
+        // Arabic sits smaller than Latin at the same point size, so give it a
+        // little more room to stay comfortably readable in a small balloon.
+        let size: CGFloat = rightToLeft ? 15 : 13
         return NSAttributedString(string: s, attributes: [
-            .font: NSFont.systemFont(ofSize: 13, weight: .semibold),
+            .font: NSFont.systemFont(ofSize: size, weight: .medium),
             .foregroundColor: NSColor.black,
             .paragraphStyle: para,
         ])
     }
 
     /// Total window size needed for a line of text.
-    static func size(for text: String) -> NSSize {
-        let a = attributed(text)
+    static func size(for text: String, rightToLeft: Bool = false) -> NSSize {
+        let a = attributed(text, rightToLeft: rightToLeft)
         let bounds = a.boundingRect(with: NSSize(width: maxTextWidth, height: 400),
                                     options: [.usesLineFragmentOrigin, .usesFontLeading])
-        return NSSize(width: ceil(bounds.width) + inset.left + inset.right + shadow,
-                      height: ceil(bounds.height) + inset.top + inset.bottom
-                              + tailHeight + shadow)
+        return NSSize(width: ceil(bounds.width) + inset.left + inset.right,
+                      height: ceil(bounds.height) + inset.top + inset.bottom + tailHeight)
     }
 
-    private var boxRect: NSRect {
+    private var balloonRect: NSRect {
         var r = bounds
-        r.size.height -= Self.tailHeight + Self.shadow
-        r.size.width -= Self.shadow
-        r.origin.x += Self.shadow
-        if tail == .bottom { r.origin.y = Self.tailHeight + Self.shadow }
-        else { r.origin.y = Self.shadow }
+        r.size.height -= Self.tailHeight
+        if tail == .bottom { r.origin.y = Self.tailHeight }
         return r
     }
 
-    /// One continuous outline: the box with the tail spliced into the relevant
-    /// edge, so stroking never leaves a seam at the junction.
-    private func boxPath(offsetBy dx: CGFloat = 0, _ dy: CGFloat = 0) -> NSBezierPath {
-        let r = boxRect.offsetBy(dx: dx, dy: dy)
+    /// One continuous outline: the rounded rect with the tail spliced into
+    /// the relevant edge, so stroking never leaves a seam at the junction.
+    private func balloonPath() -> NSBezierPath {
+        let r = balloonRect
+        let radius: CGFloat = pixel ? 0 : 11
         let tw = Self.tailWidth, th = Self.tailHeight
-        let tx = min(max(tailX + dx, r.minX + tw), r.maxX - tw)
+        let tx = min(max(tailX, r.minX + radius + tw), r.maxX - radius - tw)
 
         let path = NSBezierPath()
-        path.move(to: NSPoint(x: r.minX, y: r.minY))
+        path.move(to: NSPoint(x: r.minX + radius, y: r.minY))
         if tail == .bottom {
             path.line(to: NSPoint(x: tx - tw / 2, y: r.minY))
-            path.line(to: NSPoint(x: tx - tw / 6, y: r.minY - th))
+            path.line(to: NSPoint(x: tx + 2, y: r.minY - th))
             path.line(to: NSPoint(x: tx + tw / 2, y: r.minY))
         }
-        path.line(to: NSPoint(x: r.maxX, y: r.minY))
-        path.line(to: NSPoint(x: r.maxX, y: r.maxY))
+        path.line(to: NSPoint(x: r.maxX - radius, y: r.minY))
+        path.appendArc(withCenter: NSPoint(x: r.maxX - radius, y: r.minY + radius),
+                       radius: radius, startAngle: 270, endAngle: 360)
+        path.line(to: NSPoint(x: r.maxX, y: r.maxY - radius))
+        path.appendArc(withCenter: NSPoint(x: r.maxX - radius, y: r.maxY - radius),
+                       radius: radius, startAngle: 0, endAngle: 90)
         if tail == .top {
             path.line(to: NSPoint(x: tx + tw / 2, y: r.maxY))
-            path.line(to: NSPoint(x: tx - tw / 6, y: r.maxY + th))
+            path.line(to: NSPoint(x: tx + 2, y: r.maxY + th))
             path.line(to: NSPoint(x: tx - tw / 2, y: r.maxY))
         }
-        path.line(to: NSPoint(x: r.minX, y: r.maxY))
+        path.line(to: NSPoint(x: r.minX + radius, y: r.maxY))
+        path.appendArc(withCenter: NSPoint(x: r.minX + radius, y: r.maxY - radius),
+                       radius: radius, startAngle: 90, endAngle: 180)
+        path.line(to: NSPoint(x: r.minX, y: r.minY + radius))
+        path.appendArc(withCenter: NSPoint(x: r.minX + radius, y: r.minY + radius),
+                       radius: radius, startAngle: 180, endAngle: 270)
         path.close()
         return path
     }
 
     override func draw(_ dirtyRect: NSRect) {
-        // Hard shadow, no blur — the era didn't have one.
-        NSColor(calibratedWhite: 0, alpha: 0.45).setFill()
-        boxPath(offsetBy: Self.shadow, -Self.shadow).fill()
+        let path = balloonPath()
 
-        let path = boxPath()
-        NSColor(calibratedRed: 0.99, green: 0.98, blue: 0.93, alpha: 1).setFill()
-        path.fill()
-        NSColor(calibratedWhite: 0.08, alpha: 1).setStroke()
-        path.lineWidth = Self.border
+        if pixel {
+            // Hard shadow, no blur — the era didn't have one.
+            NSColor(calibratedWhite: 0, alpha: 0.45).setFill()
+            let shadowPath = balloonPath()
+            var shift = AffineTransform.identity
+            shift.translate(x: 4, y: -4)
+            shadowPath.transform(using: shift)
+            shadowPath.fill()
+        } else {
+            NSGraphicsContext.saveGraphicsState()
+            let shadow = NSShadow()
+            shadow.shadowColor = NSColor.black.withAlphaComponent(0.28)
+            shadow.shadowBlurRadius = 8
+            shadow.shadowOffset = NSSize(width: 0, height: -2)
+            shadow.set()
+            NSColor(calibratedRed: 1, green: 0.99, blue: 0.94, alpha: 1).setFill()
+            path.fill()
+            NSGraphicsContext.restoreGraphicsState()
+        }
+
+        if pixel {
+            NSColor(calibratedRed: 0.99, green: 0.98, blue: 0.93, alpha: 1).setFill()
+            path.fill()
+        }
+        NSColor(calibratedWhite: pixel ? 0.08 : 0.25, alpha: pixel ? 1 : 0.85).setStroke()
+        path.lineWidth = pixel ? 2.5 : 1.5
         path.stroke()
 
-        var textRect = boxRect
+        var textRect = balloonRect.insetBy(dx: 0, dy: 0)
         textRect.origin.x += Self.inset.left
         textRect.origin.y += Self.inset.bottom
         textRect.size.width -= Self.inset.left + Self.inset.right
         textRect.size.height -= Self.inset.top + Self.inset.bottom
-        Self.attributed(text).draw(with: textRect,
-                                   options: [.usesLineFragmentOrigin, .usesFontLeading])
+        Self.attributed(text, rightToLeft: rightToLeft).draw(
+            with: textRect, options: [.usesLineFragmentOrigin, .usesFontLeading])
     }
 
     // Clicks belong to whatever is underneath.
@@ -119,8 +150,7 @@ final class SpeechBubbleWindow: NSPanel {
         hasShadow = false
         ignoresMouseEvents = true
         level = .floating
-        collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary,
-                              .ignoresCycle]
+        collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary, .ignoresCycle]
         contentView = bubble
         alphaValue = 0
     }
@@ -128,10 +158,10 @@ final class SpeechBubbleWindow: NSPanel {
     override var canBecomeKey: Bool { false }
     override var canBecomeMain: Bool { false }
 
-    /// Show `text` pointing at `anchor` — a screen point just above the
-    /// character's head.
-    func present(_ text: String, pointingAt anchor: NSPoint, on screen: NSScreen) {
-        let size = BubbleView.size(for: text)
+    /// Show `text` pointing at `anchor` — a screen point at the character's head.
+    func present(_ text: String, rightToLeft: Bool = false, pixel: Bool = false,
+                 pointingAt anchor: NSPoint, on screen: NSScreen) {
+        let size = BubbleView.size(for: text, rightToLeft: rightToLeft)
         let vf = screen.visibleFrame
 
         var origin = NSPoint(x: anchor.x - size.width / 2, y: anchor.y)
@@ -144,6 +174,8 @@ final class SpeechBubbleWindow: NSPanel {
         origin.y = min(max(origin.y, vf.minY + 6), vf.maxY - size.height - 6)
 
         bubble.text = text
+        bubble.rightToLeft = rightToLeft
+        bubble.pixel = pixel
         bubble.tail = side
         setFrame(NSRect(origin: origin, size: size), display: true)
         bubble.tailX = anchor.x - origin.x
@@ -151,14 +183,14 @@ final class SpeechBubbleWindow: NSPanel {
 
         orderFront(nil)
         NSAnimationContext.runAnimationGroup { ctx in
-            ctx.duration = 0.12
+            ctx.duration = 0.14
             animator().alphaValue = 1
         }
     }
 
     func dismiss() {
         NSAnimationContext.runAnimationGroup { ctx in
-            ctx.duration = 0.16
+            ctx.duration = 0.18
             animator().alphaValue = 0
         } completionHandler: { [weak self] in
             if self?.alphaValue == 0 { self?.orderOut(nil) }

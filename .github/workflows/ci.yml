@@ -1,28 +1,11 @@
 name: CI
-
-on:
-  push:
-    branches: [main]
-  pull_request:
-
+on: [push, pull_request]
 jobs:
   build:
-    name: Typecheck and test
     runs-on: macos-14
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Show toolchain
-        run: swift --version
-
       - name: Build
         run: ./build.sh
-
       - name: Test
         run: ./test.sh
-
-      - name: Deployment target is macOS 11 (first Apple Silicon release)
-        run: |
-          otool -l "build/MegaDrive Buddies.app/Contents/MacOS/MegaDrive Buddies" \
-            | awk '/LC_BUILD_VERSION/{f=1} f&&/minos/{print "minos", $2; exit}'

@@ -14,10 +14,11 @@ extension Personality {
         soundSet: String? = nil, title: String? = nil
     ) -> Personality {
         Personality(
-            id: id, soundSet: soundSet, scale: scale, beatRange: beats,
+            id: id, pixelArt: true, soundSet: soundSet, scale: scale, beatRange: beats,
             roaming: .init(distance: distance, speed: speed,
                            restlessness: restlessness),
-            walk: walk, flourishes: flourishes, bits: bits, title: title)
+            travel: .hops(cruise: walk), flourishes: flourishes,
+            bits: bits, title: title)
     }
 
     private static func moment(_ clip: String) -> Bit {
@@ -41,11 +42,13 @@ extension Personality {
                              bits: [moment("dance"), moment("dash")],
                              title: "ToeJam")
 
-    /// Earl is a large man who does not hurry, which is his entire character.
-    static let earl = hero("earl", scale: 2.0, beats: 12...26, speed: 110,
-                           distance: 300...1200, restlessness: 1.1,
-                           flourishes: ["walk"],
-                           bits: [moment("walk")])
+    /// Earl of ToeJam &, who does not hurry — that being his entire character.
+    /// The id carries the game: Desktop Buddies already has an Earl.
+    static let earltje = hero("earltje", scale: 2.0, beats: 12...26, speed: 110,
+                              distance: 300...1200, restlessness: 1.1,
+                              flourishes: ["walk"],
+                              bits: [moment("walk")],
+                              title: "Earl")
 
     static let robert = hero("robert", scale: 1.15, beats: 8...18, speed: 150,
                              distance: 400...1500, restlessness: 1.8,

@@ -108,5 +108,7 @@
    "fps": 9,
    "loop": false
   }
- }
+ },
+ "talk": {},
+ "hero": 0
 }

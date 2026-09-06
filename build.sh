@@ -1,11 +1,12 @@
 #!/bin/bash
-# Builds every product in products/ — there is one, MegaDrive Buddies.
+# Builds one product, or both.
 #
-#   ./build.sh                       all of them
-#   ./build.sh megadrive-buddies     just that one
+#   ./build.sh                     both
+#   ./build.sh desktop-buddies     just that one
 #
-# A product is a manifest naming a cast; the build copies only that cast's
-# sprites and stamps the name and bundle identifier into the app.
+# One codebase, two apps: they share the whole engine and differ only in who
+# ships with them and what the app is called. Each gets its own bundle
+# identifier, so both can run at once and keep their own settings.
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -45,10 +46,10 @@ plistlib.dump(plist, open(app / "Contents/Info.plist", "wb"))
 json.dump(manifest, open(app / "Contents/Resources/product.json", "w"))
 
 # Only this product's characters, plus whatever they share — and within a
-# character, only the frames its animations actually play. The repository
+# character, only the frames it can actually put on screen. The repository
 # keeps every frame a sheet gave up, because that is what the next animation
-# gets authored from; the app has no use for the other nine tenths of them.
-# Earthworm Jim's sheet alone is 1046 frames and he performs 25.
+# gets authored from; the app has no use for the other nine tenths. Earthworm
+# Jim's sheet is 1046 frames and he performs 25.
 dest = app / "Contents/Resources/characters"
 dest.mkdir(parents=True, exist_ok=True)
 kept = dropped = 0
@@ -64,18 +65,26 @@ for who in manifest["cast"] + manifest.get("sharedResources", []):
             continue
         (shutil.copytree if item.is_dir() else shutil.copy)(item, target / item.name)
 
-    anims = src / "animations.json"
+    catalogue_path = src / "animations.json"
     if not (src / "frames").is_dir():
         continue
     used = set()
-    if anims.exists():
-        catalogue = json.load(open(anims))
+    if catalogue_path.exists():
+        catalogue = json.load(open(catalogue_path))
         for clip in catalogue["animations"].values():
-            used.update(step["f"] for step in clip["steps"])
-        # The menu-bar frame is a portrait no animation plays, and dropping it
-        # leaves the status item blank — which on a menu-bar-only app means no
-        # way into the thing at all.
-        used.add(catalogue.get("icon", 0))
+            for step in clip["steps"]:
+                used.add(step["f"])
+                # Mouth patches and eye blinks are overlays composited onto a
+                # body frame, and they are frames too.
+                if step.get("o") is not None:
+                    used.add(step["o"])
+        # A talk pose holds a body frame and a set of mouth patches that no
+        # animation lists, and the hero frame is a portrait nothing plays.
+        for pose in catalogue.get("talk", {}).values():
+            used.add(pose["body"])
+            used.update(pose.get("mouths", []))
+            used.update(pose.get("ramp", []))
+        used.add(catalogue.get("hero", 0))
     (target / "frames").mkdir()
     for frame in sorted((src / "frames").iterdir()):
         if frame.suffix != ".png":

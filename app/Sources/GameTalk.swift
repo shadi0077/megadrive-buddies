@@ -368,7 +368,7 @@ enum GameTalk {
          .init("ryu", "Then you've been lucky with the city.")],
 
         [.init("toejam", "Do you know where we are?"),
-         .init("earl", "No, but the level's random, so neither does anyone."),
+         .init("earltje", "No, but the level's random, so neither does anyone."),
          .init("toejam", "That's the most relaxing thing you've ever said.")],
 
         [.init("axel", "In my game the food is on the floor."),
@@ -520,7 +520,7 @@ enum GameTalk {
          .init("jim", "Nobody in this line of work is what they look like.")],
 
         [.init("toejam", "We're aliens. Nobody ever asks about that."),
-         .init("earl", "They ask about the shorts."),
+         .init("earltje", "They ask about the shorts."),
          .init("toejam", "They always ask about the shorts.")],
 
         [.init("donald", "I was in a game about illusions."),
@@ -551,9 +551,9 @@ enum GameTalk {
          .init("spinball", "You're the fast one in a game where I'm a ball."),
          .init("skate", "A ball isn't fast. A ball is *dropped*.")],
 
-        [.init("max", "I move slowly because I only need to arrive once."),
-         .init("earl", "That's the first sensible thing anyone's said here."),
-         .init("max", "I say one thing a week.")],
+        [.init("maxsor", "I move slowly because I only need to arrive once."),
+         .init("earltje", "That's the first sensible thing anyone's said here."),
+         .init("maxsor", "I say one thing a week.")],
 
         [.init("galsia", "I'm the first enemy in the first street."),
          .init("slum", "I'm the third game's version of you."),
@@ -722,7 +722,7 @@ enum GameTalk {
         "toejam": ["We crash-landed. We were fine. We're always fine.",
                    "Nine pieces of ship, one planet, no hurry.",
                    "There's a man with a lawnmower on level six and he still visits me."],
-        "earl": ["I do not run. I have never run. Running is for people who left late.",
+        "earltje": ["I do not run. I have never run. Running is for people who left late.",
                  "There's a hot tub in this game and I have found it every time.",
                  "I am shaped like this on purpose. Somebody drew me and thought: yes."],
         "donald": ["I was in a game about illusions. Half of it wasn't there.",
@@ -749,7 +749,7 @@ enum GameTalk {
         "blaze": ["Everyone remembers the kick. Nobody remembers the projectile.",
                   "I left the police to do this. The police were the problem.",
                   "Somebody drew me a new outfit for every game and I never got a vote."],
-        "max": ["I am slow because I only need to arrive once.",
+        "maxsor": ["I am slow because I only need to arrive once.",
                 "Wrestler. Not a boxer, not a brawler. Wrestler.",
                 "I pick people up and the game says: yes, that's allowed."],
         "skate": ["I'm the fast one. Ask anyone who isn't a hedgehog.",

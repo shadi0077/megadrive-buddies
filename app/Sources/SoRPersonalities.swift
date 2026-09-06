@@ -8,11 +8,12 @@ import Foundation
 extension Personality {
     static let blaze = Personality(
         id: "blaze",
+        pixelArt: true,
         soundSet: "_sor2",
         scale: 1.55,
         beatRange: 6...14,
         roaming: .init(distance: 600...2200, speed: 190, restlessness: 2.6),
-        walk: "walk",
+        travel: .hops(cruise: "walk"),
         flourishes: ["punch", "kick", "highKick", "flip", "projectile", "spin"],
         bits: [
             .init(intro: "flip", loop: nil, outro: nil, hold: 0...0),
@@ -21,28 +22,33 @@ extension Personality {
         ]
     )
 
-    static let max = Personality(
-        id: "max",
+    /// Max Thunder. The id carries his game, because Desktop Buddies has a Max
+    /// of its own who reports the news.
+    static let maxsor = Personality(
+        id: "maxsor",
+        pixelArt: true,
         soundSet: "_sor2",
         scale: 1.55,
         beatRange: 11...24,        // he is not a quick man
         roaming: .init(distance: 500...1600, speed: 120, restlessness: 1.6),
-        walk: "walk",
+        travel: .hops(cruise: "walk"),
         flourishes: ["punch", "flex", "grapple", "slam"],
         bits: [
             .init(intro: "flex", loop: nil, outro: nil, hold: 0...0),
             .init(intro: "grapple", loop: nil, outro: "slam", hold: 0...0),
             .init(intro: "knockdown", loop: nil, outro: nil, hold: 0...0),
-        ]
+        ],
+        title: "Max"
     )
 
     static let skate = Personality(
         id: "skate",
+        pixelArt: true,
         soundSet: "_sor2",
         scale: 1.55,
         beatRange: 5...11,         // a teenager on rollerblades
         roaming: .init(distance: 900...3000, speed: 300, restlessness: 3.4),
-        walk: "walk",
+        travel: .hops(cruise: "walk"),
         flourishes: ["punch", "kick", "flip", "spin", "dash"],
         bits: [
             .init(intro: "dash", loop: nil, outro: nil, hold: 0...0),
@@ -65,12 +71,13 @@ extension Personality {
     ) -> Personality {
         Personality(
             id: id,
+            pixelArt: true,
             soundSet: "_sor2",
             scale: scale,
             beatRange: beats,
             roaming: .init(distance: distance, speed: speed,
                            restlessness: restlessness),
-            walk: "walk",
+            travel: .hops(cruise: "walk"),
             flourishes: flourishes,
             bits: bits,
             title: title

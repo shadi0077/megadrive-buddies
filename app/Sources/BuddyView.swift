@@ -1,7 +1,7 @@
 import AppKit
 
-/// Draws one sprite frame, optionally mirrored so a character can face either
-/// way without a second set of frames.
+/// Draws one composited sprite step, optionally mirrored so the bird can
+/// face either way without a second set of frames.
 ///
 /// Frames were trimmed at build time and carry a canvas offset with a
 /// top-left origin; this view flips that into AppKit's bottom-left space
@@ -11,6 +11,11 @@ final class BuddyView: NSView {
 
     var step: Step? { didSet { if step != oldValue { needsDisplay = true } } }
     var mirrored = false { didSet { if mirrored != oldValue { needsDisplay = true } } }
+    /// Pixel art must be scaled with nearest-neighbour or it turns to mush.
+    /// The Agent characters are 3D renders and want the opposite.
+    var pixelArt = false { didSet { if pixelArt != oldValue { needsDisplay = true } } }
+    /// Pixel art must be scaled with nearest-neighbour or it turns to mush.
+    /// The Agent characters are 3D renders and want the opposite.
 
     init(store: SpriteStore) {
         self.store = store
@@ -36,21 +41,20 @@ final class BuddyView: NSView {
 
     override func draw(_ dirtyRect: NSRect) {
         guard let step, let ctx = NSGraphicsContext.current else { return }
-        // Mega Drive sprites are pixel art: scaled any other way they turn to
-        // mush, and at 1.55x mush is very visible.
-        ctx.imageInterpolation = .none
-        guard let (img, _) = store.image(step.frame),
-              let dest = destination(for: step.frame) else { return }
-        if mirrored {
-            ctx.saveGraphicsState()
-            let t = NSAffineTransform()
-            t.translateX(by: dest.maxX + dest.minX, yBy: 0)
-            t.scaleX(by: -1, yBy: 1)
-            t.concat()
-            img.draw(in: dest, from: .zero, operation: .sourceOver, fraction: 1)
-            ctx.restoreGraphicsState()
-        } else {
-            img.draw(in: dest, from: .zero, operation: .sourceOver, fraction: 1)
+        ctx.imageInterpolation = pixelArt ? .none : .high
+        for index in [step.frame, step.overlay].compactMap({ $0 }) {
+            guard let (img, _) = store.image(index), let dest = destination(for: index) else { continue }
+            if mirrored {
+                ctx.saveGraphicsState()
+                let t = NSAffineTransform()
+                t.translateX(by: dest.maxX + dest.minX, yBy: 0)
+                t.scaleX(by: -1, yBy: 1)
+                t.concat()
+                img.draw(in: dest, from: .zero, operation: .sourceOver, fraction: 1)
+                ctx.restoreGraphicsState()
+            } else {
+                img.draw(in: dest, from: .zero, operation: .sourceOver, fraction: 1)
+            }
         }
     }
 
@@ -64,5 +68,5 @@ final class BuddyView: NSView {
 }
 
 extension Step: Equatable {
-    static func == (a: Step, b: Step) -> Bool { a.frame == b.frame }
+    static func == (a: Step, b: Step) -> Bool { a.frame == b.frame && a.overlay == b.overlay }
 }

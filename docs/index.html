@@ -71,6 +71,12 @@ a { color: var(--accent); }
 <body>
 <div class="wrap">
 
+<nav style="text-align:center;padding:22px 0 0;font-size:.93rem">
+   ·
+  Desktop Buddies ·
+  MegaDrive Buddies
+</nav>
+
 <header>
   <h1><span class="p">MegaDrive</span> <span class="b">Buddies</span></h1>
   <p class="tag">Thirty-seven Mega Drive characters who live on your Mac's desktop
@@ -78,8 +84,8 @@ a { color: var(--accent); }
   They pace the length of the screen at their own speeds and square up when two
   of them end up near each other.</p>
   <div class="btns">
-    <a class="btn primary" href="https://github.com/shadi0077/megadrive-buddies">View on GitHub</a>
-    <a class="btn" href="https://github.com/shadi0077/megadrive-buddies#build-and-run">Build it</a>
+    <a class="btn primary" href="https://github.com/shadi0077/desktop-buddies">View on GitHub</a>
+    <a class="btn" href="https://github.com/shadi0077/desktop-buddies/blob/main/docs/megadrive-buddies.md">Read the whole thing</a>
   </div>
 </header>
 
@@ -152,18 +158,19 @@ second, so the animation matches the ground covered.</p>
 <h2>Getting it running</h2>
 <p>macOS 11 Big Sur or later, on Apple Silicon, plus the Xcode command line
 tools. A clone builds and runs directly — the sprites are included.</p>
-<pre><code>git clone https://github.com/shadi0077/megadrive-buddies.git
-cd megadrive-buddies
-./build.sh &amp;&amp; open "build/MegaDrive Buddies.app"</code></pre>
+<pre><code>git clone https://github.com/shadi0077/desktop-buddies.git
+cd desktop-buddies
+./build.sh megadrive-buddies &amp;&amp; open "build/MegaDrive Buddies.app"</code></pre>
 <p>There's no Xcode project. <code>build.sh</code> compiles the sources with
 <code>swiftc</code> and assembles the <code>.app</code> itself — about seven
-seconds and seven megabytes.</p>
+seconds into a thirteen-megabyte app.</p>
 
 <div class="note">
-  <strong>On the artwork.</strong> The sprites and sounds are Sega's, ripped
-  from Streets of Rage. They're included so this runs from a clone, but they are
-  not covered by the MIT licence and are not mine to license. See
-  <a href="https://github.com/shadi0077/megadrive-buddies/blob/main/docs/SPRITES.md">docs/SPRITES.md</a>.
+  <strong>On the artwork.</strong> The sprites and sounds belong to Sega, SNK,
+  Capcom, Konami, Interplay, Disney, Marvel and others. They're included so this
+  runs from a clone, but they are not covered by the MIT licence and are not
+  mine to license. See
+  <a href="https://github.com/shadi0077/desktop-buddies/blob/main/docs/SPRITES.md">docs/SPRITES.md</a>.
 </div>
 
 <h2>A couple of things worth knowing</h2>
@@ -204,10 +211,12 @@ what the set does have rather than going quiet at the one moment a noise is
 called for.</p>
 
 <footer>
-  <p>MIT licensed — the code, at least. The characters belong to Sega; the MIT
-  grant does not extend to them.</p>
-  <p><a href="https://github.com/shadi0077/megadrive-buddies">github.com/shadi0077/megadrive-buddies</a>
-  · split out of <a href="https://github.com/shadi0077/desktop-buddies">desktop-buddies</a></p>
+  <p>MIT licensed — the code, at least. The characters belong to Sega, SNK,
+  Capcom, Konami, Interplay, Disney, Marvel and others; the MIT grant does not
+  extend to them.</p>
+  <p><a href="https://github.com/shadi0077/desktop-buddies">github.com/shadi0077/desktop-buddies</a>
+  · sibling app in the same repository: Desktop Buddies,
+  the same engine with the talking left in</p>
 </footer>
 
 </div>

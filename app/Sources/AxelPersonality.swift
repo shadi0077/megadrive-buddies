@@ -8,13 +8,14 @@ extension Personality {
     /// the way someone squaring up is.
     static let axel = Personality(
         id: "axel",
+        pixelArt: true,
         soundSet: "_sor2",
         scale: 1.55,               // Mega Drive sprites are small; scale him up
         beatRange: 7...16,
         // He walks, so he covers ground at walking pace and goes a long way
         // with it — across the screen, not a hop and a stop.
         roaming: .init(distance: 600...2200, speed: 165, restlessness: 2.6),
-        walk: "walk",
+        travel: .hops(cruise: "walk"),
 
         flourishes: ["punch", "jab", "kick", "highKick", "knee",
                      "grandUpper", "uppercut", "flameArc", "celebrate",

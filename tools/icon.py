@@ -20,9 +20,9 @@ work = f"build/{pid}.iconset"
 shutil.rmtree(work, ignore_errors=True)
 os.makedirs(work)
 
-# Nearest-neighbour all the way up: these are 16-bit sprites, and anything
-# else turns a 40-pixel-wide character into soup at 1024.
-resample = Image.NEAREST
+# Pixel art stays crisp; the rendered characters get smoothed.
+pixel = who not in ("peedy", "bonzi")
+resample = Image.NEAREST if pixel else Image.LANCZOS
 
 for size in (16, 32, 64, 128, 256, 512, 1024):
     canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))

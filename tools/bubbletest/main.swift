@@ -8,28 +8,35 @@ func check(_ label: String, _ ok: Bool, _ detail: String = "") {
     if ok { print("  ok   \(label)") } else { print("  FAIL \(label) \(detail)"); failures += 1 }
 }
 
-let samples = [
+let longestFact: String = GameTalk.facts.max(by: { $0.count < $1.count }) ?? ""
+let samples: [String] = [
     "Groovy.",
     "Blast processing.",
     "What's a hedgehog's favourite kind of music?",
     "Sega is short for Service Games. It started out supplying coin-op machines to army bases in Japan.",
-    GameTalk.facts.max(by: { $0.count < $1.count })!,
+    longestFact,
 ]
 
 print("every line fits a bubble:")
 for text in samples {
     let size = BubbleView.size(for: text)
-    let fits = size.width <= BubbleView.maxTextWidth + BubbleView.inset.left
-        + BubbleView.inset.right + BubbleView.shadow + 1
-    check("\(size.width.rounded())x\(size.height.rounded()) for \(text.prefix(28))…", fits,
-          "\(size.width)")
+    // Wrapped text plus the padding either side: anything wider means the
+    // wrapping didn't happen and the box is about to run off the screen.
+    let padding: CGFloat = BubbleView.inset.left + BubbleView.inset.right
+    let widest: CGFloat = BubbleView.maxTextWidth + padding + 8
+    let fits: Bool = size.width <= widest
+    check("\(Int(size.width))x\(Int(size.height)) for \(text.prefix(28))…", fits,
+          "\(size.width) > \(widest)")
 }
 
 print("\nnothing in the repertoire is too long to read in one bubble:")
 // A bubble taller than this covers the character it belongs to.
-let tallest = GameTalk.facts + GameTalk.idle + GameTalk.jokes.map(\.setup)
-    + GameTalk.jokes.map(\.punchline) + GameTalk.exchanges.flatMap { $0.map(\.text) }
-    + GameTalk.personal.values.flatMap { $0 }
+var tallest: [String] = GameTalk.facts
+tallest += GameTalk.idle
+tallest += GameTalk.jokes.map(\.setup)
+tallest += GameTalk.jokes.map(\.punchline)
+tallest += GameTalk.exchanges.flatMap { $0.map(\.text) }
+tallest += GameTalk.personal.values.flatMap { $0 }
 let worst = tallest.max(by: { BubbleView.size(for: $0).height < BubbleView.size(for: $1).height })!
 check("tallest bubble is \(Int(BubbleView.size(for: worst).height))pt",
       BubbleView.size(for: worst).height < 170, worst)

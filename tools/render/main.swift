@@ -1,14 +1,13 @@
 import AppKit
 
-// Headless harness: renders every animation through the real BuddyView, so the
-// trim offsets, the bottom-centre anchoring and mirroring are all exercised
-// without needing screen-recording permission.
+// Headless harness: renders animations through the real BuddyView so the
+// trim offsets, overlay compositing and mirroring are all exercised.
 _ = NSApplication.shared
 
 let bundlePath = CommandLine.arguments.count > 1
     ? CommandLine.arguments[1]
-    : "build/MegaDrive Buddies.app"
-let who = CommandLine.arguments.count > 2 ? CommandLine.arguments[2] : "axel"
+    : "build/Peedy.app"
+let who = CommandLine.arguments.count > 2 ? CommandLine.arguments[2] : "peedy"
 guard let bundle = Bundle(path: bundlePath),
       let store = SpriteStore(character: who, bundle: bundle) else {
     FileHandle.standardError.write("cannot load store from \(bundlePath)\n".data(using: .utf8)!)
@@ -76,11 +75,33 @@ for name in wanted {
           "shots/\(who)_anim_\(name).png")
 }
 
-// Mirroring: everybody faces the viewer's left unmirrored, so the walk
-// mirrored is the one to look at.
-if let walk = store.animation(store.animations["walk"] != nil ? "walk" : "rest") {
-    write(sheet("walk mirrored (walking right)", Array(walk.steps.prefix(8)), mirrored: true),
+// Lip-sync + mirroring checks.
+if let talk = store.talkPoses["neutral"] {
+    write(sheet("talk: neutral  body \(talk.body)",
+                talk.mouths.map { Step(frame: talk.body, overlay: $0) }),
+          "shots/\(who)_anim_talk.png")
+}
+if let fly = store.animation(store.animations["fly"] != nil ? "fly" : "rest") {
+    write(sheet("fly mirrored (flying right)", Array(fly.steps.prefix(8)), mirrored: true),
           "shots/\(who)_anim_mirrored.png")
 }
 
+// Speech bubble, both tail orientations.
+for (name, tail) in [("bubble_below", BubbleView.TailSide.bottom),
+                     ("bubble_above", BubbleView.TailSide.top)] {
+    let text = "Is it cracker o'clock yet?"
+    let s = BubbleView.size(for: text)
+    let v = BubbleView(frame: NSRect(origin: .zero, size: s))
+    v.text = text; v.tail = tail; v.tailX = s.width / 2
+    let rep = v.bitmapImageRepForCachingDisplay(in: v.bounds)!
+    v.cacheDisplay(in: v.bounds, to: rep)
+    let canvas = NSImage(size: NSSize(width: s.width + 24, height: s.height + 24))
+    canvas.lockFocus()
+    NSColor(calibratedRed: 0.15, green: 0.15, blue: 0.21, alpha: 1).setFill()
+    NSRect(origin: .zero, size: canvas.size).fill()
+    NSImage(size: s, flipped: false) { r in rep.draw(in: r); return true }
+        .draw(in: NSRect(x: 12, y: 12, width: s.width, height: s.height))
+    canvas.unlockFocus()
+    write(canvas, "shots/\(name).png")
+}
 print("rendered")
